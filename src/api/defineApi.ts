@@ -1,5 +1,26 @@
 import type { ApiDefinition, Operation, Row } from "../types";
-export const defineApi = (definition: ApiDefinition) => definition;
+export const defineApi = (definition: ApiDefinition) =>
+  ({
+    ...definition,
+    operations: definition.operations.map((operation) => ({
+      ...operation,
+      capability: operation.capability ?? {
+        id: `${definition.id}.${operation.id}`,
+        intents: [...definition.keywords, operation.title],
+        examples: [
+          {
+            prompt: operation.title,
+            arguments: Object.fromEntries(
+              Object.entries(operation.inputs)
+                .filter(([, v]) => v.default !== undefined)
+                .map(([key, v]) => [key, v.default]),
+            ),
+          },
+        ],
+        views: [operation.preferred ?? "auto", "table", "json"],
+      },
+    })),
+  }) as ApiDefinition;
 export const resultLimit = {
   type: "integer" as const,
   label: "Results",

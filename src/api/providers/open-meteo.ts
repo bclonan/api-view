@@ -16,6 +16,19 @@ export default defineApi({
         "Current conditions and an hourly temperature forecast. Temperatures are Celsius.",
       endpoint: "https://api.open-meteo.com/v1/forecast",
       inputs: {
+        forecast_days: {
+          type: "integer",
+          label: "Forecast days",
+          default: 7,
+          minimum: 1,
+          maximum: 16,
+        },
+        hourly: {
+          type: "string",
+          label: "Hourly variables",
+          default: "temperature_2m,precipitation_probability",
+        },
+        timezone: { type: "string", label: "Timezone", default: "auto" },
         latitude: {
           type: "number",
           label: "Latitude",
@@ -38,17 +51,45 @@ export default defineApi({
           ...a,
           current:
             "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
-          hourly: "temperature_2m",
-          forecast_days: 1,
-          timezone: "auto",
+          hourly: a.hourly ?? "temperature_2m,precipitation_probability",
+          forecast_days: a.forecast_days ?? 7,
+          timezone: a.timezone ?? "auto",
         }),
       extract: (r) =>
         r.hourly.time.map((time: string, i: number) => ({
           time,
-          temperature: r.hourly.temperature_2m[i],
+          ...(r.hourly.temperature_2m
+            ? { temperature: r.hourly.temperature_2m[i] }
+            : {}),
+          ...Object.fromEntries(
+            Object.entries(r.hourly)
+              .filter(([key]) => !["time", "temperature_2m"].includes(key))
+              .map(([key, values]) => [key, (values as unknown[])[i]]),
+          ),
         })),
       sample: weatherSample,
       preferred: "weather",
+      collectionPath: "hourly",
+      cacheTtlMs: 600000,
+      capability: {
+        id: "weather.forecast",
+        intents: [
+          "weather",
+          "forecast",
+          "temperature",
+          "precipitation",
+          "rain",
+          "wind",
+        ],
+        examples: [
+          {
+            prompt:
+              "Show Baltimore temperature and precipitation for seven days",
+            arguments: { latitude: 39.29, longitude: -76.61, forecast_days: 7 },
+          },
+        ],
+        views: ["weather", "line-chart", "table"],
+      },
       metadata: (r) => ({ current: r.current, units: r.current_units }),
     },
   ],

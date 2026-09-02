@@ -18,6 +18,21 @@ const render = (data: unknown, type: PresentationType) =>
     }),
   );
 describe("generic renderers", () => {
+  it("keeps document summaries readable while retaining nested metadata in other views", async () => {
+    const data = [
+      {
+        title: "A paper",
+        authors: "Example Author",
+        publication_year: 2026,
+        DOI: "10.1234/test",
+        internal: { debug: "nested receipt" },
+      },
+    ];
+    const document = await render(data, "document");
+    expect(document).toContain("Example Author");
+    expect(document).not.toContain("nested receipt");
+    expect(await render(data, "table")).toContain("nested receipt");
+  });
   it("renders numeric values as text without losing the value", async () =>
     expect(await render(12345, "text")).toContain("12,345"));
   it("renders single image and audio/video as native elements", async () => {

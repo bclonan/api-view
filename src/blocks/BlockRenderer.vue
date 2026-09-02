@@ -8,12 +8,14 @@ import {
   ExternalLink,
   BookOpen,
 } from "lucide-vue-next";
-import { rowsOf, isRow, numericTypes } from "../runtime/normalize";
+import { rowsOf, isRow, numericTypes, numberOf } from "../runtime/normalize";
+import { readPath } from "../runtime/fields";
 import ValueRenderer from "../values/ValueRenderer.vue";
 import TableBlock from "./TableBlock.vue";
 const ChartBlock = defineAsyncComponent(() => import("./ChartBlock.vue"));
 import MapBlock from "./MapBlock.vue";
 import JsonBlock from "./JsonBlock.vue";
+import StructuredBlock from "./StructuredBlock.vue";
 import type { SemanticResult, PresentationSpec, Row } from "../types";
 const props = defineProps<{
   result: SemanticResult;
@@ -24,13 +26,42 @@ const type = computed(() =>
     ? props.result.suggestedPresentations[0]
     : props.presentation.type,
 );
-const rows = computed(() => rowsOf(props.result.data));
+const rows = computed(() =>
+  rowsOf(props.result.data).map((row) => ({
+    ...row,
+    ...Object.fromEntries(
+      props.result.fields.map((field) => [field.key, readPath(row, field.key)]),
+    ),
+  })),
+);
 const fields = computed(() =>
-  props.presentation.fields?.length
-    ? props.result.fields.filter((f) =>
-        props.presentation.fields!.includes(f.key),
+  props.presentation.fields !== undefined
+    ? props.presentation.fields.flatMap((key) =>
+        props.result.fields.filter((f) => f.key === key),
       )
-    : props.result.fields,
+    : type.value === "document"
+      ? props.result.fields
+          .filter(
+            (f) =>
+              !/[.\[]/.test(f.key) &&
+              [
+                "title",
+                "person",
+                "organization",
+                "description",
+                "doi",
+                "isbn",
+                "year",
+                "date",
+                "datetime",
+                "timestamp",
+                "url",
+              ].some(
+                (meaning) => meaning === f.semanticType || meaning === f.type,
+              ),
+          )
+          .slice(0, 10)
+      : props.result.fields,
 );
 const xField = computed(
   () =>
@@ -42,13 +73,24 @@ const xField = computed(
     "",
 );
 const yField = computed(
-  () => props.presentation.yField ?? props.result.measures[0] ?? "",
+  () =>
+    props.presentation.yField ??
+    (props.result.measures.includes("value")
+      ? "value"
+      : props.result.measures[0]) ??
+    "",
 );
 const yType = computed(
   () => props.result.fields.find((f) => f.key === yField.value)?.type,
 );
+const datedMetric = computed(() =>
+  props.result.fields.some(
+    (field) =>
+      field.key === xField.value && ["date", "datetime"].includes(field.type),
+  ),
+);
 const imageField = computed(
-  () => props.result.fields.find((f) => f.type === "image")?.key,
+  () => fields.value.find((f) => f.type === "image")?.key,
 );
 const latitude = computed(
   () => props.result.fields.find((f) => f.type === "latitude")?.key,
@@ -66,21 +108,25 @@ const latest = computed(
 );
 const metric = computed(() => {
   const n = latest.value[yField.value];
-  if (n === undefined || n === null) return "Not available";
+  if (!Number.isFinite(numberOf(n))) return "Not available";
   return new Intl.NumberFormat("en-US", {
-    notation: "compact",
+    notation:
+      props.presentation.props?.numberFormat === "standard"
+        ? "standard"
+        : "compact",
     maximumFractionDigits: 2,
     ...(yType.value === "currency"
       ? ({ style: "currency", currency: "USD" } as const)
       : {}),
-  }).format(Number(n));
+  }).format(numberOf(n));
 });
 const metricChange = computed(() => {
+  if (!datedMetric.value) return undefined;
   const ordered = [...rows.value].sort((a, b) =>
     String(a[xField.value]).localeCompare(String(b[xField.value])),
   );
-  const first = Number(ordered[0]?.[yField.value]),
-    last = Number(ordered.at(-1)?.[yField.value]);
+  const first = numberOf(ordered[0]?.[yField.value]),
+    last = numberOf(ordered.at(-1)?.[yField.value]);
   return ordered.length > 1 && first && Number.isFinite(last)
     ? ((last - first) / Math.abs(first)) * 100
     : undefined;
@@ -109,22 +155,48 @@ const conditions = computed(() => {
                 : "Thunderstorms";
 });
 const chartTypes = ["line-chart", "bar-chart", "area-chart", "scatter", "pie"];
+const histogram = computed(() => {
+  const values = rows.value
+    .map((r) => numberOf(r[yField.value]))
+    .filter(Number.isFinite);
+  if (!values.length) return [];
+  const min = Math.min(...values),
+    max = Math.max(...values),
+    n = min === max ? 1 : Math.min(16, Math.ceil(Math.sqrt(values.length))),
+    width = (max - min) / n || 1;
+  const bins = Array.from({ length: n }, (_, i) => ({
+    range: `${(min + i * width).toFixed(2)} to ${(min + (i + 1) * width).toFixed(2)}`,
+    count: 0,
+  }));
+  values.forEach(
+    (v) => bins[Math.min(n - 1, Math.floor((v - min) / width))].count++,
+  );
+  return bins;
+});
 const canChart = computed(
   () =>
     !!yField.value &&
     rows.value.some(
       (r) =>
-        r[yField.value] != null && Number.isFinite(Number(r[yField.value])),
+        r[yField.value] != null && Number.isFinite(numberOf(r[yField.value])),
     ) &&
     (type.value !== "scatter" ||
-      rows.value.some((r) => Number.isFinite(Number(r[xField.value])))) &&
+      rows.value.some((r) => Number.isFinite(numberOf(r[xField.value])))) &&
     (type.value !== "pie" ||
       (rows.value.length <= 12 &&
-        rows.value.every((r) => Number(r[yField.value]) >= 0))),
+        rows.value.every((r) => numberOf(r[yField.value]) >= 0))),
 );
 const heading = (r: Row) =>
   String(
-    r.title ?? r.name ?? r.place ?? r[props.result.dimensions[0]] ?? "Record",
+    props.presentation.fields?.length
+      ? (r[
+          fields.value.find((f) => !numericTypes.includes(f.type))?.key ?? ""
+        ] ?? "Record")
+      : (r.title ??
+          r.name ??
+          r.place ??
+          r[props.result.dimensions[0]] ??
+          "Record"),
   );
 const url = (v: unknown) =>
   typeof v === "string" && /^https?:\/\//i.test(v) ? v : undefined;
@@ -145,19 +217,51 @@ const datedRows = computed(() =>
   </div>
   <JsonBlock v-else-if="type === 'json'" :value="result.data" />
   <TableBlock v-else-if="type === 'table'" :rows="rows" :fields="fields" />
+  <StructuredBlock
+    v-else-if="['comparison', 'calendar', 'graph'].includes(type)"
+    :kind="type"
+    :rows="rows"
+    :fields="fields"
+    :time-field="xField"
+    :data="result.data"
+  />
+  <div v-else-if="type === 'histogram' && histogram.length">
+    <ChartBlock
+      :rows="histogram"
+      x-field="range"
+      y-field="count"
+      type="bar-chart"
+    /><TableBlock
+      :rows="histogram"
+      :fields="[
+        { key: 'range', label: 'Range', type: 'text', confidence: 1 },
+        { key: 'count', label: 'Count', type: 'integer', confidence: 1 },
+      ]"
+    />
+  </div>
   <div
     v-else-if="type === 'metric' || type === 'finance-quote'"
     class="metric-block"
   >
     <p class="eyebrow">
-      {{ result.fields.find((f) => f.key === yField)?.label ?? "Value" }}
+      {{
+        latest.label ??
+        latest.title ??
+        result.fields.find((f) => f.key === yField)?.label ??
+        "Value"
+      }}
     </p>
-    <div class="metric-value">{{ metric }}</div>
+    <div class="metric-value">
+      {{ metric }}<small v-if="latest.unit"> {{ latest.unit }}</small>
+    </div>
+    <p v-if="latest.subtitle ?? latest.description" class="muted">
+      {{ latest.subtitle ?? latest.description }}
+    </p>
     <p v-if="metricChange !== undefined" class="metric-change">
       {{ metricChange >= 0 ? "+" : "" }}{{ metricChange.toFixed(2) }}%
       <span class="muted">over this period</span>
     </p>
-    <p class="tiny muted" v-if="latest[xField]">
+    <p class="tiny muted" v-if="datedMetric && latest[xField]">
       As of <ValueRenderer :value="latest[xField]" :field-key="xField" />
     </p>
     <ChartBlock
@@ -215,7 +319,13 @@ const datedRows = computed(() =>
         }}</span
       >
     </div>
-    <ChartBlock :rows="rows" :x-field="xField" :y-field="yField" :type="type" />
+    <ChartBlock
+      :rows="rows"
+      :x-field="xField"
+      :y-field="yField"
+      :series="presentation.series"
+      :type="type"
+    />
   </div>
   <MapBlock
     v-else-if="type === 'map' && latitude && longitude"
@@ -310,6 +420,7 @@ const datedRows = computed(() =>
         'book',
         'drug',
         'link-preview',
+        'document',
       ].includes(type)
     "
     :class="['entity-block', `entity-${type}`]"
@@ -347,6 +458,7 @@ const datedRows = computed(() =>
                   <ValueRenderer
                     :value="row[field.key]"
                     :semantic-type="field.type"
+                    :field-key="field.key"
                   />
                 </p>
               </details>
@@ -354,6 +466,7 @@ const datedRows = computed(() =>
                 v-else
                 :value="row[field.key]"
                 :semantic-type="field.type"
+                :field-key="field.key"
               /></dd
           ></template>
         </dl>

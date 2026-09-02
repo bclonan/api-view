@@ -16,6 +16,30 @@ const current = computed(() =>
 );
 const runTool = createToolRunner(store);
 const examples: Record<string, unknown> = {
+  plan_goal: {
+    prompt:
+      "Build an earthquake research dashboard with weather near the strongest event.",
+  },
+  execute_goal: {
+    prompt:
+      "Build an earthquake research dashboard with weather near the strongest event.",
+  },
+  search_api_catalog: { query: "earthquakes from the last week" },
+  inspect_api_capability: {
+    sourceId: "usgs",
+    capabilityId: "earthquake.search",
+  },
+  run_api: {
+    sourceId: "usgs",
+    capabilityId: "earthquake.search",
+    params: { minmagnitude: 5, limit: 12 },
+    mode: "sample",
+  },
+  test_source: {
+    sourceId: "crossref",
+    capabilityId: "research.search",
+    params: { query: "earthquakes", rows: 1 },
+  },
   search_apis: { query: "federal debt" },
   describe_api: { apiId: "treasury", operationId: "debt-to-penny" },
   invoke_api: {
@@ -44,18 +68,55 @@ const examples: Record<string, unknown> = {
   refresh_widgets: { scope: "all" },
   get_workspace: {},
   export_workspace: {},
+  manage_dashboard: { action: "create", title: "New dashboard" },
+  list_components: {},
+  define_api: {
+    definition: {
+      id: "custom-example",
+      name: "Example JSON",
+      baseUrl: "https://example.com",
+      endpoint: "/data",
+      method: "GET",
+      sampleResponse: {
+        records: [{ name: "Example place", population: 62000 }],
+      },
+      responsePath: "records",
+    },
+  },
 };
 watch(selected, () => {
   const widgetId = store.widgets[0]?.id ?? "read-get_workspace-first";
   input.value = JSON.stringify(
-    examples[selected.value] ?? {
-      widgetId,
-      ...(selected.value === "transform_widget"
-        ? { presentation: "table" }
-        : selected.value === "update_widget"
-          ? { patch: { title: "Updated widget" } }
-          : {}),
-    },
+    examples[selected.value] ??
+      (["inspect_data", "suggest_views", "add_card"].includes(selected.value)
+        ? {
+            envelopeId:
+              store.widgets[0]?.result?.id ??
+              store.dataRequests[0]?.response.result.id ??
+              "run_api first",
+          }
+        : [
+              "duplicate_card",
+              "update_card",
+              "transform_data",
+              "combine_data",
+            ].includes(selected.value)
+          ? {
+              cardId: widgetId,
+              ...(selected.value === "transform_data"
+                ? { steps: [{ op: "limit", count: 5 }] }
+                : {}),
+            }
+          : selected.value === "select_cards"
+            ? { cardIds: [widgetId] }
+            : {
+                widgetId,
+                ...(selected.value === "transform_widget"
+                  ? { presentation: "table" }
+                  : selected.value === "update_widget"
+                    ? { patch: { title: "Updated widget" } }
+                    : {}),
+              }),
     null,
     2,
   );
@@ -81,7 +142,7 @@ async function run() {
       ></span
       ><strong>{{
         webmcpStatus === "available"
-          ? "12 tools registered with WebMCP"
+          ? `${contracts.length} tools registered with WebMCP`
           : "Native WebMCP is unavailable in this browser"
       }}</strong>
       <p>

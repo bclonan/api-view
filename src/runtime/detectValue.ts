@@ -18,12 +18,21 @@ export function detectValue({
     if (
       Array.isArray(value) &&
       value.length === 2 &&
+      /coordinates?|position|location/.test(name) &&
       value.every((v) => typeof v === "number")
     )
       return result("coordinate", 0.75);
-    return result("unknown", 0.2);
+    return result(Array.isArray(value) ? "array" : "object", 1);
   }
   const text = String(value);
+  if (/^-?\d+(?:\.\d+)?\s*%$/.test(text)) return result("percent", 0.99);
+  if (/^[$€£]\s*-?[\d,.]+$/.test(text)) return result("currency", 0.99);
+  if (
+    /^-?\d+(?:\.\d+)?\s*(kg|km|km\/h|m\/s|cm|mm|m|g|mg|°[CF]|kWh|W|Hz)$/i.test(
+      text,
+    )
+  )
+    return result("measurement", 0.9);
   if (/(^id$|_id$|^key$|^zip|postal|^code$)/.test(name))
     return result("identifier");
   if (/^https?:\/\//i.test(text)) {
@@ -49,6 +58,12 @@ export function detectValue({
   if (typeof value === "number" || /^-?(?:\d+\.?\d*|\.\d+)$/.test(text)) {
     const n = Number(value);
     if (!Number.isFinite(n)) return result("unknown", 0);
+    if (
+      /(^time$|timestamp|_at$)/.test(name) &&
+      n >= 1000000000 &&
+      n <= 9999999999999
+    )
+      return result("datetime", 0.9);
     if (/^(lat|latitude)$/.test(name) && Math.abs(n) <= 90)
       return result("latitude", 0.99);
     if (/^(lng|lon|longitude)$/.test(name) && Math.abs(n) <= 180)

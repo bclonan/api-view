@@ -5,6 +5,7 @@ import { LineChart, BarChart, PieChart, ScatterChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import type { Row } from "../types";
+import { numberOf } from "../runtime/normalize";
 echarts.use([
   LineChart,
   BarChart,
@@ -19,6 +20,7 @@ const props = defineProps<{
   xField: string;
   yField: string;
   type: string;
+  series?: string[];
 }>();
 const root = ref<HTMLElement>();
 let chart: echarts.ECharts | undefined;
@@ -29,7 +31,7 @@ const ordered = computed(() =>
       (r) =>
         r[props.yField] !== null &&
         r[props.yField] !== undefined &&
-        Number.isFinite(Number(r[props.yField])),
+        Number.isFinite(numberOf(r[props.yField])),
     )
     .sort((a, b) =>
       /^\d{4}-/.test(String(a[props.xField]))
@@ -88,8 +90,15 @@ function draw() {
             splitLine: { lineStyle: { color: "#eff0eb" } },
             axisLabel: { color: "#7e847b", fontSize: 10, formatter: compact },
           },
-      series: [
-        {
+      series: (isPie || isScatter
+        ? [props.yField]
+        : props.series?.length
+          ? props.series
+          : [props.yField]
+      )
+        .slice(0, 4)
+        .map((field) => ({
+          name: field,
           type: isPie
             ? "pie"
             : isScatter
@@ -113,23 +122,26 @@ function draw() {
           data: isPie
             ? rows.map((r) => ({
                 name: String(r[props.xField]),
-                value: Number(r[props.yField]),
+                value: numberOf(r[props.yField]),
               }))
             : isScatter
               ? rows.map((r) => [
-                  Number(r[props.xField]),
-                  Number(r[props.yField]),
+                  numberOf(r[props.xField]),
+                  numberOf(r[props.yField]),
                 ])
-              : rows.map((r) => Number(r[props.yField])),
-        },
-      ],
+              : rows.map((r) => numberOf(r[field])),
+        })),
     },
     true,
   );
 }
-watch(() => [props.rows, props.type, props.xField, props.yField], draw, {
-  deep: true,
-});
+watch(
+  () => [props.rows, props.type, props.xField, props.yField, props.series],
+  draw,
+  {
+    deep: true,
+  },
+);
 onMounted(() => {
   if (root.value) {
     chart = echarts.init(root.value);

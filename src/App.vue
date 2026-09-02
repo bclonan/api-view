@@ -23,9 +23,16 @@ import DiscoverDrawer from "./discover/DiscoverDrawer.vue";
 import OperationPicker from "./discover/OperationPicker.vue";
 import WidgetShell from "./widgets/WidgetShell.vue";
 import AgentComposer from "./workspace/AgentComposer.vue";
+import DashboardManager from "./workspace/DashboardManager.vue";
+import RequestHistory from "./workspace/RequestHistory.vue";
+const historyOpen = ref(false);
+import CustomApiEditor from "./discover/CustomApiEditor.vue";
+import { apis, customApis } from "./api/registry";
+const customEditor = ref(false);
+const customEditId = ref<string>();
 import ToolExplorer from "./webmcp/ToolExplorer.vue";
 import ModalDialog from "./components/ModalDialog.vue";
-import { templates } from "./workspace/templates";
+import { templates, createTemplate } from "./workspace/templates";
 import { registerTools, webmcpStatus } from "./webmcp/register";
 import { createToolRunner } from "./webmcp/handlers";
 import { download } from "./runtime/download";
@@ -41,7 +48,9 @@ const error = ref("");
 const allReady = computed(
   () =>
     store.widgets.length > 0 &&
-    store.widgets.every((w) => w.status === "ready"),
+    store.widgets.every(
+      (w) => w.status === "ready" && !store.resultForWidget(w.id).issues.length,
+    ),
 );
 const runTool = createToolRunner(store);
 let cleanup: (() => void) | undefined;
@@ -52,11 +61,7 @@ function select(apiId: string, operationId: string) {
 async function buildTemplate(id: string) {
   busy.value = true;
   templatesOpen.value = false;
-  const template = templates.find((t) => t.id === id)!;
-  const result = await runTool("create_dashboard", {
-    title: template.title,
-    widgets: template.widgets,
-  });
+  const result = await createTemplate(id, runTool);
   if (result.isError) error.value = JSON.parse(result.content[0].text).error;
   busy.value = false;
 }
@@ -135,6 +140,10 @@ onBeforeUnmount(() => {
       :collapsed="collapsed"
       @select="select"
       @close="collapsed = true"
+      @custom="
+        customEditId = undefined;
+        customEditor = true;
+      "
     />
     <main class="workspace">
       <div class="workspace-breadcrumb">
@@ -149,9 +158,27 @@ onBeforeUnmount(() => {
           /></button
         ><span>Personal workspace</span><span>/</span><span>Canvas</span
         ><span class="saved-label"
-          ><Check :size="12" /> Saved on this device</span
+          ><Check v-if="store.savedOnDevice" :size="12" />
+          {{
+            store.savedOnDevice
+              ? "Saved on this device"
+              : "Changes are not saved"
+          }}</span
         >
       </div>
+      <DashboardManager />
+      <p v-if="store.apiProposal" class="notice">
+        An agent proposed {{ store.apiProposal.name }}.
+        <button class="button" @click="customEditor = true">
+          Review proposed API</button
+        ><button class="text-button" @click="store.apiProposal = undefined">
+          Dismiss
+        </button>
+      </p>
+      <button class="text-button" @click="historyOpen = true">
+        Request history
+      </button>
+      <RequestHistory v-if="historyOpen" @close="historyOpen = false" />
       <div class="workspace-title">
         <div>
           <div class="eyebrow">WORKSPACE</div>
@@ -262,7 +289,7 @@ onBeforeUnmount(() => {
             @click="buildTemplate(template.id)"
           >
             <div class="template-art" aria-hidden="true">
-              <template v-if="i === 0"
+              <template v-if="template.id === 'government'"
                 ><div class="mini-metric">
                   <span>FEDERAL DEBT</span><strong>$36.9T</strong
                   ><svg viewBox="0 0 180 50">
@@ -278,7 +305,7 @@ onBeforeUnmount(() => {
                   <Globe :size="20" /><strong>24°</strong
                   ><small>WASHINGTON, DC</small>
                 </div></template
-              ><template v-else-if="i === 1"
+              ><template v-else-if="template.id === 'city'"
                 ><div class="mini-city">
                   <span>BALTIMORE</span>
                   <div class="skyline">
@@ -312,7 +339,7 @@ onBeforeUnmount(() => {
             <span class="step-number">01</span>
             <p>
               <strong>Pick your sources</strong
-              ><span>Explore 12 public APIs in Discover.</span>
+              ><span>Explore {{ apis.length }} public APIs in Discover.</span>
             </p>
           </div>
           <div>
@@ -370,6 +397,11 @@ onBeforeUnmount(() => {
       :key="`${picker.apiId}/${picker.operationId}`"
       v-bind="picker"
       @close="picker = undefined"
+      @edit="
+        customEditId = $event;
+        picker = undefined;
+        customEditor = true;
+      "
     /><ToolExplorer v-if="toolsOpen" @close="toolsOpen = false" /><ModalDialog
       v-if="templatesOpen"
       title="Add to your canvas"
@@ -422,4 +454,16 @@ onBeforeUnmount(() => {
       </div></ModalDialog
     >
   </div>
+  <CustomApiEditor
+    v-if="customEditor"
+    :definition="
+      store.apiProposal ?? customApis.find((api) => api.id === customEditId)
+    "
+    @close="customEditor = false"
+    @saved="
+      store.apiProposal = undefined;
+      customEditor = false;
+      picker = { apiId: $event, operationId: 'request' };
+    "
+  />
 </template>

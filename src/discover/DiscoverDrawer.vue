@@ -7,28 +7,17 @@ defineProps<{ collapsed?: boolean }>();
 const emit = defineEmits<{
   select: [apiId: string, operationId: string];
   close: [];
+  custom: [];
 }>();
 const query = ref("");
 const category = ref("");
 const matches = computed(
   () =>
-    new Set(searchApis(query.value, category.value, 20).map((m) => m.apiId)),
+    new Set(searchApis(query.value, category.value, 200).map((m) => m.apiId)),
 );
-const categories = [
-  "Weather",
-  "Government",
-  "Books",
-  "Images",
-  "Geography",
-  "Knowledge",
-  "Health",
-  "Developer",
-  "Space",
-  "Population",
-  "Entertainment",
-  "Finance",
-  "Earth science",
-];
+const categories = computed(() =>
+  [...new Set(apis.flatMap((api) => api.categories))].sort(),
+);
 </script>
 <template>
   <aside class="discover" v-if="!collapsed">
@@ -81,10 +70,18 @@ const categories = [
       <p v-if="!matches.size" class="muted no-results">
         No sources match. Try weather, books, or debt.
       </p>
+      <button class="button custom-api-button" @click="emit('custom')">
+        <Plus :size="14" /> Add API or local data
+      </button>
     </div>
     <div class="discover-note">
       <span class="status-dot ready"></span
-      ><span>11 sources without API keys</span>
+      ><span
+        >{{
+          apis.filter((api) => api.authentication !== "api-key").length
+        }}
+        sources without API keys</span
+      >
       <p>Public data. Yours to explore.</p>
     </div>
   </aside>

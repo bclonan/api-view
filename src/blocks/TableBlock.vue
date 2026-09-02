@@ -1,7 +1,27 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import ValueRenderer from "../values/ValueRenderer.vue";
+import { readPath } from "../runtime/fields";
 import type { Row, SemanticField } from "../types";
+import { download } from "../runtime/download";
+function exportCsv() {
+  const cell = (v: unknown) =>
+    '"' +
+    String(v ?? "")
+      .replace(/^[=+@-]/, "'$&")
+      .replaceAll('"', '""') +
+    '"';
+  download(
+    "canvas-table.csv",
+    [
+      props.fields.map((f) => cell(f.label)).join(","),
+      ...filtered.value.map((row) =>
+        props.fields.map((f) => cell(readPath(row, f.key))).join(","),
+      ),
+    ].join("\r\n"),
+    "text/csv;charset=utf-8",
+  );
+}
 const props = defineProps<{ rows: Row[]; fields: SemanticField[] }>();
 const sort = ref("");
 const direction = ref(1);
@@ -16,8 +36,8 @@ const filtered = computed(() =>
     )
     .sort((a, b) => {
       if (!sort.value) return 0;
-      const x = a[sort.value],
-        y = b[sort.value];
+      const x = readPath(a, sort.value),
+        y = readPath(b, sort.value);
       return (
         direction.value *
         (x !== null &&
@@ -42,6 +62,7 @@ function changeSort(key: string) {
 </script>
 <template>
   <div class="data-table">
+    <button class="text-button" @click="exportCsv">Export CSV</button>
     <label class="table-search"
       ><span>Filter rows</span
       ><input v-model="filter" placeholder="Find in this data..."
@@ -77,7 +98,7 @@ function changeSort(key: string) {
           >
             <td v-for="field in fields" :key="field.key">
               <ValueRenderer
-                :value="row[field.key]"
+                :value="readPath(row, field.key)"
                 :semantic-type="field.type"
                 :field-key="field.key"
               />

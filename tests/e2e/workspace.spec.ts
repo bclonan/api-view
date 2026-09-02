@@ -1,5 +1,172 @@
 import { expect, test } from "@playwright/test";
 
+test("the mixed-source starter binds four APIs into a generic summary", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", {
+      name: /FOUR SOURCES, ONE VIEW Public data dashboard/,
+    })
+    .click();
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  const summary = page.getByRole("article", {
+    name: "Across the sources",
+    exact: true,
+  });
+  await expect(summary).toContainText("4 sources");
+  await expect(summary).toContainText("6,177,224");
+  await expect(summary).toContainText("Earth from space");
+  await expect(summary).toContainText("Sample drug label");
+  const quake = page.getByRole("article", {
+    name: "Earthquake observations",
+    exact: true,
+  });
+  await expect(quake.getByRole("columnheader")).toHaveCount(3);
+  await summary
+    .getByRole("button", { name: "Options for Across the sources" })
+    .click();
+  await summary
+    .getByRole("button", { name: "Move to top", exact: true })
+    .click();
+  await expect(page.locator("article.widget").first()).toHaveAttribute(
+    "aria-label",
+    "Across the sources",
+  );
+  await summary.getByRole("button", { name: "record", exact: true }).click();
+  await summary
+    .getByLabel("Visualization", { exact: true })
+    .selectOption("metric");
+  await summary.getByRole("button", { name: "Interface", exact: true }).click();
+  await expect(summary.locator(".metric-value")).toHaveText("6.18M");
+  await page.reload();
+  await expect(summary.locator(".metric-value")).toHaveText("6.18M");
+  await expect(summary).toContainText("4 sources");
+});
+
+test("keeps dashboards separate through switch, reload, clear, undo and delete", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: /GOVERNMENT & EARTH The U.S. at a glance/ })
+    .click();
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  await page
+    .getByRole("button", { name: "New dashboard", exact: true })
+    .click();
+  await page
+    .getByLabel("Dashboard name", { exact: true })
+    .fill("My second dashboard");
+  await page
+    .getByRole("button", { name: "Create dashboard", exact: true })
+    .click();
+  await expect(page.locator("article.widget")).toHaveCount(0);
+  await page
+    .getByRole("combobox", { name: "Switch dashboard" })
+    .selectOption({ label: "The U.S. at a glance" });
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  await page.reload();
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  await page
+    .getByRole("button", { name: "Clear dashboard", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.locator("article.widget")).toHaveCount(5);
+  await page
+    .getByRole("button", { name: "Clear dashboard", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Clear all widgets", exact: true })
+    .click();
+  await expect(page.locator("article.widget")).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo clear", exact: true }).click();
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  await page
+    .getByRole("combobox", { name: "Switch dashboard" })
+    .selectOption({ label: "My second dashboard" });
+  await page
+    .getByRole("button", { name: "Manage dashboard", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Delete dashboard", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Delete this dashboard", exact: true })
+    .click();
+  await expect(page.locator('[data-status="ready"]')).toHaveCount(5);
+  await expect(
+    page.getByRole("combobox", { name: "Switch dashboard" }).locator("option"),
+  ).toHaveCount(1);
+});
+
+test("uses a custom nested response in the existing request, bindings and renderer UI", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Add API or local data", exact: true })
+    .click();
+  await page.getByLabel("API name", { exact: true }).fill("County data");
+  await page.getByLabel("Sample response JSON").fill(
+    JSON.stringify({
+      records: [
+        {
+          name: "Maryland",
+          population: 6177224,
+          properties: { magnitude: 4.6 },
+        },
+      ],
+    }),
+  );
+  await page.getByRole("button", { name: "Save API", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add to workspace", exact: true })
+    .click();
+  const widget = page.getByRole("article", {
+    name: "County data",
+    exact: true,
+  });
+  await expect(widget).toHaveAttribute("data-status", "ready");
+  await widget.getByRole("button", { name: "Options for County data" }).click();
+  await widget
+    .getByRole("button", { name: "Show fields", exact: true })
+    .click();
+  await expect(
+    widget.getByText("records[].properties.magnitude", { exact: true }),
+  ).toBeVisible();
+  await widget.getByRole("button", { name: "Options for County data" }).click();
+  await widget
+    .getByRole("button", { name: "Change visualization", exact: true })
+    .click();
+  await widget.getByLabel("Binding origin").selectOption("raw");
+  await widget.getByLabel("Binding path").fill("records[0].population");
+  await widget.getByLabel("Binding label").fill("Population");
+  await widget
+    .getByRole("button", { name: "Add or replace binding", exact: true })
+    .click();
+  await widget
+    .getByRole("button", { name: "Apply data settings", exact: true })
+    .click();
+  await widget
+    .getByLabel("Visualization", { exact: true })
+    .selectOption("metric");
+  await widget.getByRole("button", { name: "Interface", exact: true }).click();
+  await expect(widget.locator(".metric-value")).toHaveText("6.18M");
+  await page.reload();
+  await expect(widget.locator(".metric-value")).toHaveText("6.18M");
+  await widget.getByRole("button", { name: "Options for County data" }).click();
+  await widget
+    .getByRole("button", { name: "Show response", exact: true })
+    .click();
+  await expect(
+    widget.getByText("records Array · 1", { exact: true }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test("builds, transforms, inspects, exports, and restores a dashboard", async ({
   page,
 }) => {

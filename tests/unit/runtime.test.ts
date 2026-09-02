@@ -242,6 +242,7 @@ describe("workspace shared actions", () => {
     const store = useWorkspace();
     const pending = store.createWidget({ ...debt, mode: "live" });
     expect(store.widgets[0].status).toBe("loading");
+    await vi.waitFor(() => expect(finish).toBeTypeOf("function"));
     store.removeWidget(store.widgets[0].id);
     finish(new Response(JSON.stringify({ data: [] })));
     await expect(pending).rejects.toThrow("not found");
@@ -256,7 +257,9 @@ describe("workspace shared actions", () => {
     const store = useWorkspace();
     const first = store.createWidget({ ...debt, mode: "live" });
     const id = store.widgets[0].id;
+    await vi.waitFor(() => expect(finishes[0]).toBeTypeOf("function"));
     const second = store.updateWidget(id, { arguments: { limit: 2 } });
+    await vi.waitFor(() => expect(finishes[1]).toBeTypeOf("function"));
     finishes[1](
       new Response(
         JSON.stringify({
@@ -279,9 +282,9 @@ describe("workspace shared actions", () => {
   });
 });
 describe("WebMCP contracts", () => {
-  it("has exactly 12 stable tools with schemas", () => {
-    expect(contracts).toHaveLength(12);
-    expect(new Set(contracts.map((c) => c.name)).size).toBe(12);
+  it("preserves the original tools and exposes dashboard and generic data operations", () => {
+    expect(contracts.length).toBeGreaterThanOrEqual(28);
+    expect(new Set(contracts.map((c) => c.name)).size).toBe(contracts.length);
     expect(
       contracts.every((c) => c.schema.additionalProperties === false),
     ).toBe(true);

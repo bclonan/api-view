@@ -34,6 +34,12 @@ const formatted = computed(() => {
   const v = props.value;
   if (v === undefined || v === null || v === "") return "Not available";
   if (type.value === "boolean") return v ? "Yes" : "No";
+  if (
+    ["currency", "percent", "measurement"].includes(type.value) &&
+    typeof v === "string" &&
+    /[$€£%a-z°]/i.test(v)
+  )
+    return v;
   if (type.value === "currency")
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -42,14 +48,18 @@ const formatted = computed(() => {
     }).format(Number(v));
   if (type.value === "percent") return `${Number(v).toLocaleString()}%`;
   if (type.value === "number" || type.value === "integer")
-    return Number(v).toLocaleString("en-US", { maximumFractionDigits: 3 });
+    return /(^year$|_year$)/.test(props.fieldKey ?? "")
+      ? String(v)
+      : Number(v).toLocaleString("en-US", { maximumFractionDigits: 3 });
   if (type.value === "date")
     return new Date(`${String(v).slice(0, 10)}T12:00:00`).toLocaleDateString(
       "en-US",
       { month: "short", day: "numeric", year: "numeric" },
     );
   if (type.value === "datetime")
-    return new Date(String(v)).toLocaleString("en-US", {
+    return new Date(
+      typeof v === "number" ? (v < 100000000000 ? v * 1000 : v) : String(v),
+    ).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
       hour: "numeric",

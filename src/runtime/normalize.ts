@@ -1,4 +1,7 @@
-import { detectValue, labelFor } from "./detectValue";
+import { discoverFields, flattenFields } from "./fields";
+import { inferStructure, normalizeStructure } from "./structure";
+import { compatibleHint, isMeasure } from "./semantics";
+import { compatibleComponents } from "../blocks/definitions";
 import type {
   Operation,
   SemanticResult,
@@ -17,7 +20,22 @@ export const rowsOf = (data: unknown): Row[] =>
       : data === undefined || data === null
         ? []
         : [{ value: data }];
-export const numericTypes = ["number", "integer", "currency", "percent"];
+export const numericTypes = [
+  "number",
+  "integer",
+  "currency",
+  "percent",
+  "measurement",
+];
+export function numberOf(value: unknown) {
+  if (value == null || value === "") return NaN;
+  if (typeof value === "number") return value;
+  const text = String(value)
+    .trim()
+    .replace(/[$€£,]/g, "")
+    .replace(/\s*(%|kg|km\/h|m\/s|km|cm|mm|mg|m|g|°[CF]|kWh|W|Hz)$/i, "");
+  return text ? Number(text) : NaN;
+}
 export function detectShape(
   data: unknown,
   fields: SemanticField[],
@@ -92,23 +110,23 @@ export function normalize(
   apiId: string,
   mode: DataMode,
 ): SemanticResult {
-  const data = operation.extract(raw);
-  const rows = rowsOf(data);
-  const keys = [...new Set(rows.slice(0, 30).flatMap(Object.keys))];
-  const fields = keys.map((key) => ({
-    key,
-    label: labelFor(key),
-    ...(operation.hints?.[key]
-      ? { type: operation.hints[key], confidence: 1 }
-      : detectValue({
-          key,
-          value: rows.find((r) => r[key] !== undefined && r[key] !== null)?.[
-            key
-          ],
-        })),
+  const structure = inferStructure(raw, operation.collectionPath);
+  const extracted = operation.extract ? operation.extract(raw) : structure.data;
+  const data = normalizeStructure(extracted);
+  const fieldTree = discoverFields(data);
+  const discovered = flattenFields(fieldTree);
+  const fields = discovered.map((field) => ({
+    ...field,
+    key: field.key,
+    label: field.label,
+    ...(operation.hints?.[field.key] &&
+    compatibleHint(field, operation.hints[field.key])
+      ? { type: operation.hints[field.key], confidence: 1 }
+      : {}),
   }));
+  /* Field discovery samples multiple records without rewriting their values. */
   const shape = detectShape(data, fields);
-  return {
+  const result: SemanticResult = {
     id: crypto.randomUUID(),
     source: {
       apiId,
@@ -119,17 +137,52 @@ export function normalize(
     shape,
     data,
     fields,
-    dimensions: fields
-      .filter((f) => !numericTypes.includes(f.type))
-      .map((f) => f.key),
-    measures: fields
-      .filter((f) => numericTypes.includes(f.type))
-      .map((f) => f.key),
+    fieldTree,
+    dimensions: fields.filter((f) => !isMeasure(f)).map((f) => f.key),
+    measures: fields.filter(isMeasure).map((f) => f.key),
     suggestedPresentations: resolvePresentation(
       shape,
       data,
       operation.preferred,
     ),
     metadata: operation.metadata?.(raw) ?? {},
+    structure: {
+      rootType: shape,
+      collectionPath: structure.collectionPath,
+      recordCount: rowsOf(data).length,
+    },
   };
+  const candidates = compatibleComponents(result).filter((c) => c.compatible);
+  result.suggestedPresentations = candidates.map((c) => c.id);
+  if (
+    operation.preferred &&
+    candidates.some((c) => c.id === operation.preferred)
+  )
+    result.suggestedPresentations = [
+      operation.preferred,
+      ...result.suggestedPresentations.filter(
+        (id) => id !== operation.preferred,
+      ),
+    ];
+  return result;
+}
+export function normalizeData(
+  data: unknown,
+  source: SemanticResult["source"],
+  preferred?: PresentationType,
+  hints?: Operation["hints"],
+) {
+  const result = normalize(
+    data,
+    {
+      id: source.operationId,
+      extract: (v: unknown) => v,
+      preferred,
+      hints,
+    } as Operation,
+    source.apiId,
+    source.mode,
+  );
+  result.source = source;
+  return result;
 }

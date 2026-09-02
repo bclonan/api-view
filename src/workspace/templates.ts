@@ -1,4 +1,5 @@
 import type { WidgetInput } from "../types";
+import type { createToolRunner } from "../webmcp/handlers";
 export const templates: {
   id: string;
   title: string;
@@ -6,6 +7,89 @@ export const templates: {
   tag: string;
   widgets: WidgetInput[];
 }[] = [
+  {
+    id: "public-data",
+    title: "Public data dashboard",
+    description:
+      "Space imagery, earthquakes, published labels, and population in shared components.",
+    tag: "FOUR SOURCES, ONE VIEW",
+    widgets: [
+      {
+        apiId: "nasa",
+        operationId: "search",
+        arguments: { q: "moon", limit: 2 },
+        title: "Space imagery",
+        presentation: "gallery",
+        width: 6,
+      },
+      {
+        apiId: "usgs",
+        operationId: "recent",
+        arguments: { limit: 6, minmagnitude: 2.5 },
+        title: "Earthquake observations",
+        presentation: "table",
+        width: 6,
+        bindings: {
+          place: { path: "place" },
+          magnitude: { path: "magnitude" },
+          time: { path: "time" },
+        },
+      },
+      {
+        apiId: "open-fda",
+        operationId: "labels",
+        arguments: { q: "aspirin", limit: 2 },
+        title: "Published drug labels",
+        presentation: "cards",
+        width: 6,
+      },
+      {
+        apiId: "census",
+        operationId: "population",
+        arguments: {},
+        mode: "sample",
+        title: "Population sample",
+        presentation: "bar-chart",
+        width: 6,
+      },
+      {
+        apiId: "census",
+        operationId: "population",
+        arguments: {},
+        mode: "sample",
+        title: "Across the sources",
+        presentation: "record",
+        width: 12,
+        bindings: {
+          title: { literal: "Selected source values" },
+          value: {
+            sourceId: "template:3",
+            origin: "data",
+            path: "[0].population",
+            label: "Population sample",
+          },
+          earthquakes: {
+            sourceId: "template:1",
+            origin: "raw",
+            path: "features.length",
+            label: "Earthquakes returned",
+          },
+          space: {
+            sourceId: "template:0",
+            origin: "data",
+            path: "[0].title",
+            label: "NASA image",
+          },
+          published_label: {
+            sourceId: "template:2",
+            origin: "data",
+            path: "[0].title",
+            label: "Published label",
+          },
+        },
+      },
+    ],
+  },
   {
     id: "government",
     title: "The U.S. at a glance",
@@ -108,3 +192,39 @@ export const templates: {
     ],
   },
 ];
+export async function createTemplate(
+  templateId: string,
+  runTool: ReturnType<typeof createToolRunner>,
+) {
+  const template = templates.find((entry) => entry.id === templateId);
+  if (!template) throw new Error("Template not found.");
+  const created = await runTool("create_dashboard", {
+    title: template.title,
+    widgets: template.widgets.map(
+      ({ bindings: _bindings, ...widget }) => widget,
+    ),
+  });
+  if (created.isError) return created;
+  const workspace = JSON.parse(created.content[0].text);
+  const widgets = workspace.widgets.slice(-template.widgets.length);
+  for (const [index, spec] of template.widgets.entries()) {
+    if (!spec.bindings) continue;
+    const bindings = Object.fromEntries(
+      Object.entries(spec.bindings).map(([slot, binding]) => [
+        slot,
+        {
+          ...binding,
+          ...(binding.sourceId?.startsWith("template:")
+            ? { sourceId: widgets[Number(binding.sourceId.split(":")[1])].id }
+            : {}),
+        },
+      ]),
+    );
+    const updated = await runTool("update_widget", {
+      widgetId: widgets[index].id,
+      patch: { bindings },
+    });
+    if (updated.isError) return updated;
+  }
+  return runTool("get_workspace", {});
+}
