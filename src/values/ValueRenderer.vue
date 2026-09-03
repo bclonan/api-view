@@ -2,17 +2,27 @@
 import { computed, ref, watch, inject, type ComputedRef } from "vue";
 import { detectValue, isYearField } from "../runtime/detectValue";
 import type { SemanticValueType } from "../types";
+import type { ImageCredit } from "../runtime/imageCredits";
+import { isLocalObjectUrl } from "../runtime/localFiles";
 const props = defineProps<{
   value: unknown;
   semanticType?: SemanticValueType;
   fieldKey?: string;
 }>();
+const emit = defineEmits<{ unavailable: [] }>();
 const type = computed(
   () =>
     props.semanticType ??
     detectValue({ key: props.fieldKey, value: props.value }).type,
 );
 const failedImage = ref(false);
+const credits = inject<ComputedRef<Map<string, ImageCredit>>>(
+  "api-canvas-image-credits",
+  computed(() => new Map()),
+);
+const credit = computed(() =>
+  safeUrl.value ? credits.value.get(safeUrl.value) : undefined,
+);
 const currency = inject<ComputedRef<string>>(
   "api-canvas-currency",
   computed(() => ""),
@@ -20,7 +30,10 @@ const currency = inject<ComputedRef<string>>(
 const safeUrl = computed(() => {
   try {
     const url = new URL(String(props.value));
-    return ["https:", "http:"].includes(url.protocol) ? url.href : undefined;
+    return ["https:", "http:"].includes(url.protocol) ||
+      isLocalObjectUrl(props.value)
+      ? url.href
+      : undefined;
   } catch {
     return undefined;
   }
@@ -78,15 +91,42 @@ const formatted = computed(() => {
 });
 </script>
 <template>
-  <img
+  <span
     v-if="type === 'image' && safeUrl && !failedImage"
-    :src="safeUrl"
-    :alt="fieldKey || 'Source image'"
-    class="value-image"
-    loading="lazy"
-    referrerpolicy="no-referrer"
-    @error="failedImage = true"
-  />
+    class="credited-image"
+  >
+    <img
+      :src="safeUrl"
+      :alt="fieldKey || 'Source image'"
+      class="value-image"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      @error="
+        failedImage = true;
+        emit('unavailable');
+      "
+    />
+    <span v-if="credit" class="image-credit">
+      <a
+        v-if="credit.authorUrl && credit.name"
+        :href="credit.authorUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        >{{ credit.name }}</a
+      >
+      <span v-else-if="credit.name">{{ credit.name }}</span>
+      <span v-if="credit.name && credit.source"> · </span>
+      <a
+        v-if="credit.sourceUrl"
+        :href="credit.sourceUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        >{{ credit.source || "Image source" }}</a
+      >
+      <span v-else>{{ credit.source }}</span>
+      <span v-if="credit.license"> · {{ credit.license }}</span>
+    </span>
+  </span>
   <a
     v-else-if="safeUrl && ['url', 'image', 'audio', 'video'].includes(type)"
     :href="safeUrl"

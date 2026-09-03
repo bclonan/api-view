@@ -1,0 +1,1653 @@
+{
+  "testedAt": "2026-09-03T03:02:54.629Z",
+  "origin": "http://127.0.0.1:5195",
+  "sourceCount": 38,
+  "operationCount": 41,
+  "outcomes": [
+    {
+      "sourceId": "treasury",
+      "name": "U.S. Treasury",
+      "capabilityId": "debt-to-penny",
+      "params": {
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://fiscaldata.treasury.gov/api-documentation/",
+      "testedAt": "2026-09-03T03:02:11.124Z",
+      "durationMs": 602,
+      "status": "failed",
+      "error": {
+        "code": "network",
+        "title": "Browser request unavailable",
+        "message": "The network request failed. The source may be offline or may not allow browser access. Check your connection, retry, or choose sample data."
+      }
+    },
+    {
+      "sourceId": "open-meteo",
+      "name": "Open-Meteo",
+      "capabilityId": "forecast",
+      "params": {
+        "forecast_days": 7,
+        "hourly": "temperature_2m,precipitation_probability",
+        "timezone": "auto",
+        "latitude": 39.29,
+        "longitude": -76.61
+      },
+      "authentication": "none",
+      "docs": "https://open-meteo.com/en/docs",
+      "testedAt": "2026-09-03T03:02:27.783Z",
+      "durationMs": 17260,
+      "status": "ready",
+      "recordCount": 168,
+      "fields": [
+        "time",
+        "temperature",
+        "precipitation_probability"
+      ],
+      "requestUrl": "https://api.open-meteo.com/v1/forecast?forecast_days=7&hourly=temperature_2m%2Cprecipitation_probability&timezone=auto&latitude=39.29&longitude=-76.61&current=temperature_2m%2Capparent_temperature%2Crelative_humidity_2m%2Cwind_speed_10m%2Cweather_code"
+    },
+    {
+      "sourceId": "usgs",
+      "name": "USGS Earthquakes",
+      "capabilityId": "recent",
+      "params": {
+        "orderby": "time",
+        "limit": 2,
+        "minmagnitude": 5
+      },
+      "authentication": "none",
+      "docs": "https://earthquake.usgs.gov/fdsnws/event/1/",
+      "testedAt": "2026-09-03T03:02:10.976Z",
+      "durationMs": 453,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "url",
+        "time",
+        "latitude",
+        "longitude",
+        "place",
+        "magnitude",
+        "depth"
+      ],
+      "requestUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&orderby=time&limit=2&minmagnitude=5"
+    },
+    {
+      "sourceId": "open-library",
+      "name": "Open Library",
+      "capabilityId": "search",
+      "params": {
+        "limit": 2,
+        "q": "Architecture and cities"
+      },
+      "authentication": "none",
+      "docs": "https://openlibrary.org/dev/docs/api/search",
+      "testedAt": "2026-09-03T03:02:28.937Z",
+      "durationMs": 1154,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "author",
+        "year",
+        "image_url",
+        "url"
+      ],
+      "requestUrl": "https://openlibrary.org/search.json?q=Architecture+and+cities&limit=2&fields=key%2Ctitle%2Cauthor_name%2Cfirst_publish_year%2Ccover_i"
+    },
+    {
+      "sourceId": "open-fda",
+      "name": "openFDA",
+      "capabilityId": "labels",
+      "params": {
+        "limit": 2,
+        "q": "Aspirin"
+      },
+      "authentication": "none",
+      "docs": "https://open.fda.gov/apis/drug/label/",
+      "testedAt": "2026-09-03T03:02:28.543Z",
+      "durationMs": 758,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "generic_name",
+        "indications",
+        "warnings",
+        "dosage"
+      ],
+      "requestUrl": "https://api.fda.gov/drug/label.json?search=openfda.generic_name%3A%22Aspirin%22&limit=2"
+    },
+    {
+      "sourceId": "wikipedia",
+      "name": "Wikipedia",
+      "capabilityId": "summary",
+      "params": {
+        "title": "Baltimore"
+      },
+      "authentication": "none",
+      "docs": "https://www.mediawiki.org/wiki/API:Main_page",
+      "testedAt": "2026-09-03T03:02:28.003Z",
+      "durationMs": 217,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "title",
+        "description",
+        "image_url",
+        "url"
+      ],
+      "requestUrl": "https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&inprop=url&pithumbsize=640&titles=Baltimore"
+    },
+    {
+      "sourceId": "geocoding",
+      "name": "Open-Meteo Geocoding",
+      "capabilityId": "search",
+      "params": {
+        "name": "Baltimore"
+      },
+      "authentication": "none",
+      "docs": "https://open-meteo.com/en/docs/geocoding-api",
+      "testedAt": "2026-09-03T03:02:29.446Z",
+      "durationMs": 509,
+      "status": "ready",
+      "recordCount": 8,
+      "fields": [
+        "title",
+        "latitude",
+        "longitude",
+        "id",
+        "name",
+        "elevation",
+        "feature_code",
+        "country_code",
+        "admin1_id",
+        "admin2_id",
+        "timezone",
+        "population",
+        "postcodes",
+        "country_id",
+        "country",
+        "admin1",
+        "admin2",
+        "admin3_id",
+        "admin3"
+      ],
+      "requestUrl": "https://geocoding-api.open-meteo.com/v1/search?name=Baltimore&count=8&language=en"
+    },
+    {
+      "sourceId": "nasa",
+      "name": "NASA Images",
+      "capabilityId": "search",
+      "params": {
+        "q": "earth",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf",
+      "testedAt": "2026-09-03T03:02:29.201Z",
+      "durationMs": 263,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "description",
+        "image_url"
+      ],
+      "requestUrl": "https://images-api.nasa.gov/search?q=earth&media_type=image&page_size=2"
+    },
+    {
+      "sourceId": "census",
+      "name": "U.S. Census",
+      "capabilityId": "population",
+      "params": {},
+      "authentication": "api-key",
+      "docs": "https://www.census.gov/data/developers/data-sets/decennial-census.html",
+      "testedAt": "2026-09-03T03:02:28.951Z",
+      "durationMs": 12,
+      "status": "failed",
+      "error": {
+        "code": "authentication-required",
+        "title": "This source requires an API key",
+        "message": "Census now requires an API key for this endpoint. This adapter supports sample data only. API key storage is not implemented."
+      }
+    },
+    {
+      "sourceId": "github",
+      "name": "GitHub",
+      "capabilityId": "repositories",
+      "params": {
+        "q": "vue",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://docs.github.com/en/rest/search/search#search-repositories",
+      "testedAt": "2026-09-03T03:02:29.774Z",
+      "durationMs": 328,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "description",
+        "stars",
+        "language",
+        "url"
+      ],
+      "requestUrl": "https://api.github.com/search/repositories?q=vue&per_page=2&sort=stars"
+    },
+    {
+      "sourceId": "pokeapi",
+      "name": "PokéAPI",
+      "capabilityId": "pokemon",
+      "params": {
+        "name": "pikachu"
+      },
+      "authentication": "none",
+      "docs": "https://pokeapi.co/docs/v2",
+      "testedAt": "2026-09-03T03:02:29.593Z",
+      "durationMs": 146,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "title",
+        "image_url",
+        "height",
+        "weight",
+        "types",
+        "hp",
+        "attack",
+        "defense",
+        "special-attack",
+        "special-defense",
+        "speed"
+      ],
+      "requestUrl": "https://pokeapi.co/api/v2/pokemon/pikachu"
+    },
+    {
+      "sourceId": "picsum",
+      "name": "Lorem Picsum",
+      "capabilityId": "images",
+      "params": {
+        "limit": 2,
+        "page": 2
+      },
+      "authentication": "none",
+      "docs": "https://picsum.photos/",
+      "testedAt": "2026-09-03T03:02:29.687Z",
+      "durationMs": 239,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "image_url",
+        "author",
+        "url"
+      ],
+      "requestUrl": "https://picsum.photos/v2/list?limit=2&page=2"
+    },
+    {
+      "sourceId": "artic",
+      "name": "Art Institute of Chicago",
+      "capabilityId": "search",
+      "params": {
+        "q": "Monet",
+        "limit": 2,
+        "page": 1,
+        "fields": "id,title,artist_title,artist_display,date_display,date_start,image_id,thumbnail,classification_title,medium_display,is_public_domain"
+      },
+      "authentication": "none",
+      "docs": "https://api.artic.edu/docs/",
+      "testedAt": "2026-09-03T03:02:30.054Z",
+      "durationMs": 280,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "_score",
+        "id",
+        "title",
+        "thumbnail.lqip",
+        "thumbnail.width",
+        "thumbnail.height",
+        "thumbnail.alt_text",
+        "date_start",
+        "date_display",
+        "artist_display",
+        "medium_display",
+        "is_public_domain",
+        "artist_title",
+        "classification_title",
+        "image_id",
+        "author",
+        "date",
+        "image_url",
+        "url",
+        "description"
+      ],
+      "requestUrl": "https://api.artic.edu/api/v1/artworks/search?q=Monet&limit=2&page=1&fields=id%2Ctitle%2Cartist_title%2Cartist_display%2Cdate_display%2Cdate_start%2Cimage_id%2Cthumbnail%2Cclassification_title%2Cmedium_display%2Cis_public_domain"
+    },
+    {
+      "sourceId": "artic",
+      "name": "Art Institute of Chicago",
+      "capabilityId": "artwork",
+      "params": {
+        "id": 27992
+      },
+      "authentication": "none",
+      "docs": "https://api.artic.edu/docs/",
+      "testedAt": "2026-09-03T03:02:30.085Z",
+      "durationMs": 310,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "id",
+        "title",
+        "thumbnail.lqip",
+        "thumbnail.width",
+        "thumbnail.height",
+        "thumbnail.alt_text",
+        "date_start",
+        "date_display",
+        "artist_display",
+        "medium_display",
+        "is_public_domain",
+        "artist_title",
+        "classification_title",
+        "image_id",
+        "author",
+        "date",
+        "image_url",
+        "url",
+        "description"
+      ],
+      "requestUrl": "https://api.artic.edu/api/v1/artworks/27992?fields=id%2Ctitle%2Cartist_title%2Cartist_display%2Cdate_display%2Cdate_start%2Cimage_id%2Cthumbnail%2Cclassification_title%2Cmedium_display%2Cis_public_domain"
+    },
+    {
+      "sourceId": "crossref",
+      "name": "Crossref",
+      "capabilityId": "works",
+      "params": {
+        "query": "WebMCP",
+        "rows": 2,
+        "sort": "published",
+        "order": "desc"
+      },
+      "authentication": "none",
+      "docs": "https://api.crossref.org/swagger-ui/index.html",
+      "testedAt": "2026-09-03T03:02:30.027Z",
+      "durationMs": 252,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "description",
+        "url",
+        "time",
+        "publisher",
+        "indexed.date-parts",
+        "indexed.date-time",
+        "indexed.timestamp",
+        "indexed.version",
+        "posted.date-parts",
+        "group-title",
+        "reference-count",
+        "license[].start.date-parts",
+        "license[].start.date-time",
+        "license[].start.timestamp",
+        "license[].content-version",
+        "license[].delay-in-days",
+        "license[].URL",
+        "content-domain.domain",
+        "content-domain.crossmark-restriction",
+        "abstract",
+        "DOI",
+        "type",
+        "created.date-parts",
+        "created.date-time",
+        "created.timestamp",
+        "source",
+        "is-referenced-by-count",
+        "prefix",
+        "author[].ORCID",
+        "author[].authenticated-orcid",
+        "author[].given",
+        "author[].family",
+        "author[].sequence",
+        "author[].affiliation",
+        "author[].role[].vocabulary",
+        "author[].role[].role",
+        "member",
+        "deposited.date-parts",
+        "deposited.date-time",
+        "deposited.timestamp",
+        "score",
+        "resource.primary.URL",
+        "issued.date-parts",
+        "references-count",
+        "URL",
+        "published",
+        "subtype",
+        "authors",
+        "publication_year",
+        "citations",
+        "publisher-location",
+        "isbn-type[].value",
+        "isbn-type[].type",
+        "published-print.date-parts",
+        "page",
+        "update-policy",
+        "published-online.date-parts",
+        "container-title",
+        "language",
+        "link[].URL",
+        "link[].content-type",
+        "link[].content-version",
+        "link[].intended-application",
+        "ISBN",
+        "assertion[].value",
+        "assertion[].order",
+        "assertion[].name",
+        "assertion[].label",
+        "assertion[].group.name",
+        "assertion[].group.label"
+      ],
+      "requestUrl": "https://api.crossref.org/works?query=WebMCP&rows=2&sort=published&order=desc"
+    },
+    {
+      "sourceId": "crossref",
+      "name": "Crossref",
+      "capabilityId": "doi",
+      "params": {
+        "doi": "10.1038/nphys1170"
+      },
+      "authentication": "none",
+      "docs": "https://api.crossref.org/swagger-ui/index.html",
+      "testedAt": "2026-09-03T03:02:30.155Z",
+      "durationMs": 70,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "title",
+        "url",
+        "time",
+        "publisher",
+        "indexed.date-parts",
+        "indexed.date-time",
+        "indexed.timestamp",
+        "indexed.version",
+        "reference-count",
+        "issue",
+        "license[].start.date-parts",
+        "license[].start.date-time",
+        "license[].start.timestamp",
+        "license[].content-version",
+        "license[].delay-in-days",
+        "license[].URL",
+        "content-domain.domain",
+        "content-domain.crossmark-restriction",
+        "short-container-title",
+        "published-print.date-parts",
+        "DOI",
+        "type",
+        "created.date-parts",
+        "created.date-time",
+        "created.timestamp",
+        "page",
+        "source",
+        "is-referenced-by-count",
+        "prefix",
+        "volume",
+        "author[].given",
+        "author[].family",
+        "author[].sequence",
+        "author[].affiliation",
+        "author[].role[].vocabulary",
+        "author[].role[].role",
+        "member",
+        "reference[].key",
+        "reference[].doi-asserted-by",
+        "reference[].first-page",
+        "reference[].DOI",
+        "reference[].volume",
+        "reference[].author",
+        "reference[].year",
+        "reference[].unstructured",
+        "reference[].journal-title",
+        "reference[].volume-title",
+        "container-title",
+        "original-title",
+        "language",
+        "link[].URL",
+        "link[].content-type",
+        "link[].content-version",
+        "link[].intended-application",
+        "deposited.date-parts",
+        "deposited.date-time",
+        "deposited.timestamp",
+        "score",
+        "resource.primary.URL",
+        "subtitle",
+        "short-title",
+        "issued.date-parts",
+        "references-count",
+        "journal-issue.issue",
+        "journal-issue.published-print.date-parts",
+        "alternative-id",
+        "URL",
+        "relation",
+        "ISSN",
+        "issn-type[].value",
+        "issn-type[].type",
+        "subject",
+        "published",
+        "authors",
+        "publication_year",
+        "description",
+        "citations"
+      ],
+      "requestUrl": "https://api.crossref.org/works/10.1038%2Fnphys1170"
+    },
+    {
+      "sourceId": "pubchem",
+      "name": "PubChem",
+      "capabilityId": "name",
+      "params": {
+        "name": "caffeine"
+      },
+      "authentication": "none",
+      "docs": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+      "testedAt": "2026-09-03T03:02:30.548Z",
+      "durationMs": 462,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "CID",
+        "MolecularFormula",
+        "MolecularWeight",
+        "SMILES",
+        "ConnectivitySMILES",
+        "XLogP",
+        "TPSA",
+        "HBondDonorCount",
+        "HBondAcceptorCount",
+        "title",
+        "url"
+      ],
+      "requestUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/caffeine/property/MolecularFormula,MolecularWeight,ConnectivitySMILES,SMILES,XLogP,TPSA,HBondDonorCount,HBondAcceptorCount/JSON"
+    },
+    {
+      "sourceId": "pubchem",
+      "name": "PubChem",
+      "capabilityId": "cid",
+      "params": {
+        "cid": "2244"
+      },
+      "authentication": "none",
+      "docs": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+      "testedAt": "2026-09-03T03:02:30.651Z",
+      "durationMs": 565,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "CID",
+        "MolecularFormula",
+        "MolecularWeight",
+        "SMILES",
+        "ConnectivitySMILES",
+        "XLogP",
+        "TPSA",
+        "HBondDonorCount",
+        "HBondAcceptorCount",
+        "title",
+        "url"
+      ],
+      "requestUrl": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/MolecularFormula,MolecularWeight,ConnectivitySMILES,SMILES,XLogP,TPSA,HBondDonorCount,HBondAcceptorCount/JSON"
+    },
+    {
+      "sourceId": "clinical-trials",
+      "name": "ClinicalTrials.gov",
+      "capabilityId": "search",
+      "params": {
+        "status": "RECRUITING",
+        "pageSize": 2,
+        "intervention": "caffeine"
+      },
+      "authentication": "none",
+      "docs": "https://clinicaltrials.gov/data-api/api",
+      "testedAt": "2026-09-03T03:02:30.821Z",
+      "durationMs": 170,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "description",
+        "url",
+        "latitude",
+        "longitude",
+        "protocolSection.identificationModule.nctId",
+        "protocolSection.identificationModule.orgStudyIdInfo.id",
+        "protocolSection.identificationModule.secondaryIdInfos[].id",
+        "protocolSection.identificationModule.secondaryIdInfos[].type",
+        "protocolSection.identificationModule.secondaryIdInfos[].domain",
+        "protocolSection.identificationModule.secondaryIdInfos[].link",
+        "protocolSection.identificationModule.organization.fullName",
+        "protocolSection.identificationModule.organization.class",
+        "protocolSection.identificationModule.briefTitle",
+        "protocolSection.identificationModule.officialTitle",
+        "protocolSection.identificationModule.acronym",
+        "protocolSection.statusModule.statusVerifiedDate",
+        "protocolSection.statusModule.overallStatus",
+        "protocolSection.statusModule.expandedAccessInfo.hasExpandedAccess",
+        "protocolSection.statusModule.startDateStruct.date",
+        "protocolSection.statusModule.startDateStruct.type",
+        "protocolSection.statusModule.primaryCompletionDateStruct.date",
+        "protocolSection.statusModule.primaryCompletionDateStruct.type",
+        "protocolSection.statusModule.completionDateStruct.date",
+        "protocolSection.statusModule.completionDateStruct.type",
+        "protocolSection.statusModule.studyFirstSubmitDate",
+        "protocolSection.statusModule.studyFirstSubmitQcDate",
+        "protocolSection.statusModule.studyFirstPostDateStruct.date",
+        "protocolSection.statusModule.studyFirstPostDateStruct.type",
+        "protocolSection.statusModule.lastUpdateSubmitDate",
+        "protocolSection.statusModule.lastUpdatePostDateStruct.date",
+        "protocolSection.statusModule.lastUpdatePostDateStruct.type",
+        "protocolSection.sponsorCollaboratorsModule.responsibleParty.type",
+        "protocolSection.sponsorCollaboratorsModule.responsibleParty.investigatorFullName",
+        "protocolSection.sponsorCollaboratorsModule.responsibleParty.investigatorTitle",
+        "protocolSection.sponsorCollaboratorsModule.responsibleParty.investigatorAffiliation",
+        "protocolSection.sponsorCollaboratorsModule.leadSponsor.name",
+        "protocolSection.sponsorCollaboratorsModule.leadSponsor.class",
+        "protocolSection.sponsorCollaboratorsModule.collaborators[].name",
+        "protocolSection.sponsorCollaboratorsModule.collaborators[].class",
+        "protocolSection.oversightModule.oversightHasDmc",
+        "protocolSection.oversightModule.isFdaRegulatedDrug",
+        "protocolSection.oversightModule.isFdaRegulatedDevice",
+        "protocolSection.oversightModule.isUsExport",
+        "protocolSection.descriptionModule.briefSummary",
+        "protocolSection.descriptionModule.detailedDescription",
+        "protocolSection.conditionsModule.conditions",
+        "protocolSection.conditionsModule.keywords",
+        "protocolSection.designModule.studyType",
+        "protocolSection.designModule.phases",
+        "protocolSection.designModule.designInfo.allocation",
+        "protocolSection.designModule.designInfo.interventionModel",
+        "protocolSection.designModule.designInfo.interventionModelDescription",
+        "protocolSection.designModule.designInfo.primaryPurpose",
+        "protocolSection.designModule.designInfo.maskingInfo.masking",
+        "protocolSection.designModule.designInfo.maskingInfo.maskingDescription",
+        "protocolSection.designModule.designInfo.maskingInfo.whoMasked",
+        "protocolSection.designModule.enrollmentInfo.count",
+        "protocolSection.designModule.enrollmentInfo.type",
+        "protocolSection.armsInterventionsModule.armGroups[].label",
+        "protocolSection.armsInterventionsModule.armGroups[].type",
+        "protocolSection.armsInterventionsModule.armGroups[].description",
+        "protocolSection.armsInterventionsModule.armGroups[].interventionNames",
+        "protocolSection.armsInterventionsModule.interventions[].type",
+        "protocolSection.armsInterventionsModule.interventions[].name",
+        "protocolSection.armsInterventionsModule.interventions[].description",
+        "protocolSection.armsInterventionsModule.interventions[].armGroupLabels",
+        "protocolSection.armsInterventionsModule.interventions[].otherNames",
+        "protocolSection.outcomesModule.primaryOutcomes[].measure",
+        "protocolSection.outcomesModule.primaryOutcomes[].description",
+        "protocolSection.outcomesModule.primaryOutcomes[].timeFrame",
+        "protocolSection.outcomesModule.secondaryOutcomes[].measure",
+        "protocolSection.outcomesModule.secondaryOutcomes[].description",
+        "protocolSection.outcomesModule.secondaryOutcomes[].timeFrame",
+        "protocolSection.eligibilityModule.eligibilityCriteria",
+        "protocolSection.eligibilityModule.healthyVolunteers",
+        "protocolSection.eligibilityModule.sex",
+        "protocolSection.eligibilityModule.maximumAge",
+        "protocolSection.eligibilityModule.stdAges",
+        "protocolSection.eligibilityModule.minimumAge",
+        "protocolSection.contactsLocationsModule.centralContacts[].name",
+        "protocolSection.contactsLocationsModule.centralContacts[].role",
+        "protocolSection.contactsLocationsModule.centralContacts[].phone",
+        "protocolSection.contactsLocationsModule.centralContacts[].email",
+        "protocolSection.contactsLocationsModule.overallOfficials[].name",
+        "protocolSection.contactsLocationsModule.overallOfficials[].affiliation",
+        "protocolSection.contactsLocationsModule.overallOfficials[].role",
+        "protocolSection.contactsLocationsModule.locations[].facility",
+        "protocolSection.contactsLocationsModule.locations[].status",
+        "protocolSection.contactsLocationsModule.locations[].city",
+        "protocolSection.contactsLocationsModule.locations[].country",
+        "protocolSection.contactsLocationsModule.locations[].contacts[].name",
+        "protocolSection.contactsLocationsModule.locations[].contacts[].role",
+        "protocolSection.contactsLocationsModule.locations[].contacts[].email",
+        "protocolSection.contactsLocationsModule.locations[].contacts[].phone",
+        "protocolSection.contactsLocationsModule.locations[].geoPoint.lat",
+        "protocolSection.contactsLocationsModule.locations[].geoPoint.lon",
+        "protocolSection.contactsLocationsModule.locations[].state",
+        "protocolSection.contactsLocationsModule.locations[].zip",
+        "protocolSection.ipdSharingStatementModule.ipdSharing",
+        "protocolSection.ipdSharingStatementModule.description",
+        "protocolSection.ipdSharingStatementModule.infoTypes",
+        "protocolSection.ipdSharingStatementModule.timeFrame",
+        "protocolSection.ipdSharingStatementModule.accessCriteria",
+        "derivedSection.miscInfoModule.versionHolder",
+        "derivedSection.conditionBrowseModule.meshes[].id",
+        "derivedSection.conditionBrowseModule.meshes[].term",
+        "derivedSection.conditionBrowseModule.ancestors[].id",
+        "derivedSection.conditionBrowseModule.ancestors[].term",
+        "derivedSection.interventionBrowseModule.meshes[].id",
+        "derivedSection.interventionBrowseModule.meshes[].term",
+        "hasResults",
+        "id",
+        "status",
+        "conditions",
+        "sponsor",
+        "phase",
+        "start_date"
+      ],
+      "requestUrl": "https://clinicaltrials.gov/api/v2/studies?query.intr=caffeine&filter.overallStatus=RECRUITING&pageSize=2&format=json"
+    },
+    {
+      "sourceId": "data-usa",
+      "name": "Data USA",
+      "capabilityId": "population",
+      "params": {
+        "year": 2023,
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://datausa.io/about/api/",
+      "testedAt": "2026-09-03T03:02:30.934Z",
+      "durationMs": 282,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "[\"State ID\"]",
+        "State",
+        "Year",
+        "Population"
+      ],
+      "requestUrl": "https://api.datausa.io/tesseract/data.jsonrecords?cube=acs_yg_total_population_5&drilldowns=State%2CYear&measures=Population&include=Year%3A2023&limit=2%2C0"
+    },
+    {
+      "sourceId": "frankfurter",
+      "name": "Frankfurter",
+      "capabilityId": "rates",
+      "params": {
+        "base": "USD",
+        "quote": "EUR"
+      },
+      "authentication": "none",
+      "docs": "https://frankfurter.dev/",
+      "testedAt": "2026-09-03T03:02:31.059Z",
+      "durationMs": 406,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "date",
+        "base",
+        "quote",
+        "rate"
+      ],
+      "requestUrl": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR"
+    },
+    {
+      "sourceId": "brewery",
+      "name": "Open Brewery DB",
+      "capabilityId": "search",
+      "params": {
+        "per_page": 2,
+        "city": "Baltimore"
+      },
+      "authentication": "none",
+      "docs": "https://www.openbrewerydb.org/documentation",
+      "testedAt": "2026-09-03T03:02:31.202Z",
+      "durationMs": 143,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "latitude",
+        "longitude",
+        "id",
+        "name",
+        "brewery_type",
+        "address_1",
+        "address_2",
+        "address_3",
+        "city",
+        "state_province",
+        "postal_code",
+        "country",
+        "phone",
+        "website_url",
+        "state",
+        "street"
+      ],
+      "requestUrl": "https://api.openbrewerydb.org/v1/breweries?by_city=Baltimore&per_page=2"
+    },
+    {
+      "sourceId": "nager-date",
+      "name": "Nager.Date",
+      "capabilityId": "holidays",
+      "params": {
+        "countryCode": "US",
+        "year": 2026
+      },
+      "authentication": "none",
+      "docs": "https://date.nager.at/Api",
+      "testedAt": "2026-09-03T03:02:31.218Z",
+      "durationMs": 157,
+      "status": "ready",
+      "recordCount": 17,
+      "fields": [
+        "date",
+        "localName",
+        "name",
+        "countryCode",
+        "fixed",
+        "global",
+        "counties",
+        "launchYear",
+        "types"
+      ],
+      "requestUrl": "https://date.nager.at/api/v3/PublicHolidays/2026/US"
+    },
+    {
+      "sourceId": "hacker-news",
+      "name": "Hacker News",
+      "capabilityId": "stories",
+      "params": {
+        "feed": "top",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://github.com/HackerNews/API",
+      "testedAt": "2026-09-03T03:02:31.693Z",
+      "durationMs": 631,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "by",
+        "descendants",
+        "id",
+        "kids",
+        "score",
+        "text",
+        "time",
+        "title",
+        "type",
+        "url"
+      ],
+      "requestUrl": "https://hacker-news.firebaseio.com/v0/topstories.json"
+    },
+    {
+      "sourceId": "loc",
+      "name": "Library of Congress",
+      "capabilityId": "search",
+      "params": {
+        "q": "Baltimore",
+        "format": "photos",
+        "c": 2,
+        "sp": 1
+      },
+      "authentication": "none",
+      "docs": "https://www.loc.gov/apis/json-and-yaml/",
+      "testedAt": "2026-09-03T03:02:31.838Z",
+      "durationMs": 145,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "access_restricted",
+        "aka",
+        "campaigns",
+        "contributor",
+        "date",
+        "dates",
+        "description",
+        "digitized",
+        "extract_timestamp",
+        "group",
+        "hassegments",
+        "id",
+        "image_url",
+        "index",
+        "item.call_number",
+        "item.contributors",
+        "item.control_number",
+        "item.created",
+        "item.created_published",
+        "item.created_published_date",
+        "item.creators[].link",
+        "item.creators[].role",
+        "item.creators[].title",
+        "item.date",
+        "item.digital_id",
+        "item.display_offsite",
+        "item.format",
+        "item.formats[].link",
+        "item.formats[].title",
+        "item.genre",
+        "item.id",
+        "item.language",
+        "item.link",
+        "item.marc",
+        "item.medium",
+        "item.medium_brief",
+        "item.mediums",
+        "item.modified",
+        "item.notes",
+        "item.number_former_id",
+        "item.other_control_numbers",
+        "item.other_number",
+        "item.part_of",
+        "item.place[].latitude",
+        "item.place[].link",
+        "item.place[].longitude",
+        "item.place[].title",
+        "item.raw_collections",
+        "item.repository",
+        "item.reproduction_number",
+        "item.resource_links",
+        "item.rights_advisory",
+        "item.rights_information",
+        "item.service_low",
+        "item.service_medium",
+        "item.sort_date",
+        "item.source_collection",
+        "item.source_created",
+        "item.source_modified",
+        "item.subject_headings",
+        "item.subjects",
+        "item.summary",
+        "item.thumb_gallery",
+        "item.title",
+        "item.contributor_names",
+        "item.location",
+        "item.stmt_of_responsibility",
+        "language",
+        "location",
+        "location_city",
+        "location_country",
+        "location_state",
+        "mime_type",
+        "number",
+        "number_former_id",
+        "number_lccn",
+        "number_source_modified",
+        "online_format",
+        "original_format",
+        "partof",
+        "resources[].caption",
+        "resources[].files",
+        "resources[].image",
+        "resources[].url",
+        "shelf_id",
+        "site",
+        "subject",
+        "timestamp",
+        "title",
+        "type",
+        "url"
+      ],
+      "requestUrl": "https://www.loc.gov/photos/?q=Baltimore&c=2&sp=1&fo=json&at=results%2Cpagination"
+    },
+    {
+      "sourceId": "federal-register",
+      "name": "Federal Register",
+      "capabilityId": "documents",
+      "params": {
+        "q": "clean water",
+        "per_page": 2
+      },
+      "authentication": "none",
+      "docs": "https://www.federalregister.gov/developers/documentation/api/v1",
+      "testedAt": "2026-09-03T03:02:31.858Z",
+      "durationMs": 164,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "type",
+        "abstract",
+        "document_number",
+        "html_url",
+        "pdf_url",
+        "public_inspection_pdf_url",
+        "publication_date",
+        "agencies[].raw_name",
+        "agencies[].name",
+        "agencies[].id",
+        "agencies[].url",
+        "agencies[].json_url",
+        "agencies[].parent_id",
+        "agencies[].slug",
+        "excerpts",
+        "description",
+        "url"
+      ],
+      "requestUrl": "https://www.federalregister.gov/api/v1/documents.json?conditions%5Bterm%5D=clean+water&per_page=2&order=newest"
+    },
+    {
+      "sourceId": "fdic",
+      "name": "FDIC BankFind",
+      "capabilityId": "failures",
+      "params": {
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://api.fdic.gov/banks/docs",
+      "testedAt": "2026-09-03T03:02:32.281Z",
+      "durationMs": 586,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "COST",
+        "CITY",
+        "PSTALP",
+        "FAILDATE",
+        "RESTYPE",
+        "NAME",
+        "ID",
+        "title",
+        "date"
+      ],
+      "requestUrl": "https://api.fdic.gov/banks/failures?limit=2&sort_by=FAILDATE&sort_order=DESC&fields=NAME%2CCITY%2CPSTALP%2CFAILDATE%2CCOST%2CRESTYPE"
+    },
+    {
+      "sourceId": "bls",
+      "name": "Bureau of Labor Statistics",
+      "capabilityId": "series",
+      "params": {
+        "series": "LNS14000000"
+      },
+      "authentication": "none",
+      "docs": "https://www.bls.gov/developers/",
+      "testedAt": "2026-09-03T03:02:32.700Z",
+      "durationMs": 419,
+      "status": "ready",
+      "recordCount": 31,
+      "fields": [
+        "year",
+        "period",
+        "periodName",
+        "latest",
+        "value",
+        "footnotes[].code",
+        "footnotes[].text",
+        "series",
+        "date"
+      ],
+      "requestUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS14000000"
+    },
+    {
+      "sourceId": "tvmaze",
+      "name": "TVmaze",
+      "capabilityId": "shows",
+      "params": {
+        "q": "Star Trek"
+      },
+      "authentication": "none",
+      "docs": "https://www.tvmaze.com/api",
+      "testedAt": "2026-09-03T03:02:32.687Z",
+      "durationMs": 405,
+      "status": "ready",
+      "recordCount": 10,
+      "fields": [
+        "id",
+        "url",
+        "name",
+        "type",
+        "language",
+        "genres",
+        "status",
+        "runtime",
+        "averageRuntime",
+        "premiered",
+        "ended",
+        "officialSite",
+        "schedule.time",
+        "schedule.days",
+        "rating.average",
+        "weight",
+        "network.id",
+        "network.name",
+        "network.country.name",
+        "network.country.code",
+        "network.country.timezone",
+        "network.officialSite",
+        "webChannel.id",
+        "webChannel.name",
+        "webChannel.country.name",
+        "webChannel.country.code",
+        "webChannel.country.timezone",
+        "webChannel.officialSite",
+        "dvdCountry",
+        "externals.tvrage",
+        "externals.thetvdb",
+        "externals.imdb",
+        "image.medium",
+        "image.original",
+        "summary",
+        "updated",
+        "_links.self.href",
+        "_links.previousepisode.href",
+        "_links.previousepisode.name",
+        "_links.nextepisode.href",
+        "_links.nextepisode.name",
+        "title",
+        "description",
+        "image_url"
+      ],
+      "requestUrl": "https://api.tvmaze.com/search/shows?q=Star+Trek"
+    },
+    {
+      "sourceId": "openf1",
+      "name": "OpenF1",
+      "capabilityId": "laps",
+      "params": {
+        "session_key": "9158"
+      },
+      "authentication": "none",
+      "docs": "https://openf1.org/",
+      "testedAt": "2026-09-03T03:02:33.137Z",
+      "durationMs": 855,
+      "status": "ready",
+      "recordCount": 475,
+      "fields": [
+        "meeting_key",
+        "session_key",
+        "driver_number",
+        "lap_number",
+        "date_start",
+        "duration_sector_1",
+        "duration_sector_2",
+        "duration_sector_3",
+        "i1_speed",
+        "i2_speed",
+        "is_pit_out_lap",
+        "lap_duration",
+        "segments_sector_1",
+        "segments_sector_2",
+        "segments_sector_3",
+        "st_speed"
+      ],
+      "requestUrl": "https://api.openf1.org/v1/laps?session_key=9158"
+    },
+    {
+      "sourceId": "world-bank",
+      "name": "World Bank",
+      "capabilityId": "indicator",
+      "params": {
+        "country": "US",
+        "indicator": "SP.POP.TOTL",
+        "date": "2015:2024"
+      },
+      "authentication": "none",
+      "docs": "https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information",
+      "testedAt": "2026-09-03T03:02:33.629Z",
+      "durationMs": 492,
+      "status": "ready",
+      "recordCount": 10,
+      "fields": [
+        "indicator.id",
+        "indicator.value",
+        "country",
+        "countryiso3code",
+        "date",
+        "value",
+        "unit",
+        "obs_status",
+        "decimal"
+      ],
+      "requestUrl": "https://api.worldbank.org/v2/country/US/indicator/SP.POP.TOTL?date=2015%3A2024&format=json&per_page=100"
+    },
+    {
+      "sourceId": "gutendex",
+      "name": "Gutendex",
+      "capabilityId": "books",
+      "params": {
+        "search": "Jane Austen"
+      },
+      "authentication": "none",
+      "docs": "https://gutendex.com/",
+      "testedAt": "2026-09-03T03:02:53.153Z",
+      "durationMs": 20015,
+      "status": "failed",
+      "error": {
+        "code": "timeout",
+        "title": "The source took too long",
+        "message": "The request timed out after 20 seconds. Try again."
+      }
+    },
+    {
+      "sourceId": "zippopotamus",
+      "name": "Zippopotam.us",
+      "capabilityId": "postal",
+      "params": {
+        "country": "US",
+        "postal": "21201"
+      },
+      "authentication": "none",
+      "docs": "https://www.zippopotam.us/",
+      "testedAt": "2026-09-03T03:02:33.310Z",
+      "durationMs": 171,
+      "status": "ready",
+      "recordCount": 1,
+      "fields": [
+        "title",
+        "latitude",
+        "longitude",
+        "[\"place name\"]",
+        "state",
+        "[\"state abbreviation\"]"
+      ],
+      "requestUrl": "https://api.zippopotam.us/US/21201"
+    },
+    {
+      "sourceId": "unsplash",
+      "name": "Unsplash",
+      "capabilityId": "search",
+      "params": {
+        "query": "Baltimore",
+        "per_page": 2,
+        "page": 1
+      },
+      "authentication": "api-key",
+      "docs": "https://unsplash.com/documentation",
+      "testedAt": "2026-09-03T03:02:53.178Z",
+      "durationMs": 25,
+      "status": "failed",
+      "error": {
+        "code": "authentication-required",
+        "title": "Unsplash needs an Access Key",
+        "message": "Add UNSPLASH_ACCESS_KEY to the site's Netlify environment variables with Functions scope, then redeploy. Create an application at https://unsplash.com/oauth/applications. A Secret Key is not needed."
+      }
+    },
+    {
+      "sourceId": "wikimedia-commons",
+      "name": "Wikimedia Commons",
+      "capabilityId": "images",
+      "params": {
+        "q": "Baltimore skyline",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://www.mediawiki.org/wiki/API:Imageinfo",
+      "testedAt": "2026-09-03T03:02:53.561Z",
+      "durationMs": 407,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "id",
+        "title",
+        "image_url",
+        "description",
+        "image_credit_name",
+        "image_credit_url",
+        "image_source_name",
+        "image_source_url",
+        "license",
+        "license_url",
+        "url"
+      ],
+      "requestUrl": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrsearch=Baltimore+skyline+filetype%3Abitmap&gsrnamespace=6&gsrlimit=2&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=640"
+    },
+    {
+      "sourceId": "met-museum",
+      "name": "The Metropolitan Museum of Art",
+      "capabilityId": "search",
+      "params": {
+        "q": "sunflowers",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://metmuseum.github.io/",
+      "testedAt": "2026-09-03T03:02:53.790Z",
+      "durationMs": 635,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "id",
+        "title",
+        "artist",
+        "date",
+        "medium",
+        "department",
+        "image_url",
+        "image_credit_name",
+        "image_credit_url",
+        "image_source_name",
+        "image_source_url",
+        "license",
+        "url"
+      ],
+      "requestUrl": "https://collectionapi.metmuseum.org/public/collection/v1/search?q=sunflowers&hasImages=true"
+    },
+    {
+      "sourceId": "gbif",
+      "name": "GBIF Biodiversity",
+      "capabilityId": "occurrences",
+      "params": {
+        "scientificName": "Corvus corax",
+        "country": "US",
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://techdocs.gbif.org/en/openapi/",
+      "testedAt": "2026-09-03T03:02:54.357Z",
+      "durationMs": 567,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "url",
+        "time",
+        "latitude",
+        "longitude",
+        "id",
+        "date",
+        "locality",
+        "country",
+        "basis",
+        "publisher",
+        "dataset",
+        "license"
+      ],
+      "requestUrl": "https://api.gbif.org/v1/occurrence/search?scientificName=Corvus+corax&country=US&limit=2&hasCoordinate=true"
+    },
+    {
+      "sourceId": "inaturalist",
+      "name": "iNaturalist",
+      "capabilityId": "observations",
+      "params": {
+        "taxon_name": "Corvus corax",
+        "per_page": 2,
+        "page": 1
+      },
+      "authentication": "none",
+      "docs": "https://api.inaturalist.org/v1/docs/",
+      "testedAt": "2026-09-03T03:02:54.211Z",
+      "durationMs": 421,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "image_url",
+        "url",
+        "time",
+        "latitude",
+        "longitude",
+        "id",
+        "scientific_name",
+        "date",
+        "place",
+        "location_privacy",
+        "image_credit_name",
+        "image_credit_url",
+        "image_source_name",
+        "image_source_url",
+        "license"
+      ],
+      "requestUrl": "https://api.inaturalist.org/v1/observations?taxon_name=Corvus+corax&per_page=2&page=1&photos=true&order_by=observed_on"
+    },
+    {
+      "sourceId": "eonet",
+      "name": "NASA EONET",
+      "capabilityId": "events",
+      "params": {
+        "status": "open",
+        "limit": 2,
+        "days": 30
+      },
+      "authentication": "none",
+      "docs": "https://eonet.gsfc.nasa.gov/docs/v3",
+      "testedAt": "2026-09-03T03:02:54.052Z",
+      "durationMs": 261,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "url",
+        "time",
+        "latitude",
+        "longitude",
+        "id",
+        "category",
+        "date",
+        "closed",
+        "sources[].id",
+        "sources[].url"
+      ],
+      "requestUrl": "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=2&days=30"
+    },
+    {
+      "sourceId": "nws-alerts",
+      "name": "National Weather Service Alerts",
+      "capabilityId": "active",
+      "params": {
+        "area": "MD"
+      },
+      "authentication": "none",
+      "docs": "https://www.weather.gov/documentation/services-web-api",
+      "testedAt": "2026-09-03T03:02:54.629Z",
+      "durationMs": 272,
+      "status": "ready",
+      "recordCount": 4,
+      "fields": [
+        "id",
+        "title",
+        "event",
+        "severity",
+        "area",
+        "effective",
+        "expires",
+        "description",
+        "instruction",
+        "sender",
+        "url"
+      ],
+      "requestUrl": "https://api.weather.gov/alerts/active?area=MD"
+    },
+    {
+      "sourceId": "nobel-prize",
+      "name": "Nobel Prize",
+      "capabilityId": "awards",
+      "params": {
+        "nobelPrizeYear": 2024,
+        "limit": 2
+      },
+      "authentication": "none",
+      "docs": "https://www.nobelprize.org/about/developer-zone-2/",
+      "testedAt": "2026-09-03T03:02:54.482Z",
+      "durationMs": 124,
+      "status": "ready",
+      "recordCount": 2,
+      "fields": [
+        "title",
+        "year",
+        "category",
+        "laureates",
+        "motivation",
+        "date",
+        "prize_amount",
+        "url"
+      ],
+      "requestUrl": "https://api.nobelprize.org/2.1/nobelPrizes?nobelPrizeYear=2024&limit=2"
+    }
+  ],
+  "requests": [
+    {
+      "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&orderby=time&limit=2&minmagnitude=5",
+      "status": 200
+    },
+    {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?page%5Bsize%5D=2&sort=-record_date&fields=record_date%2Ctot_pub_debt_out_amt%2Cdebt_held_public_amt",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "https://api.open-meteo.com/v1/forecast?forecast_days=7&hourly=temperature_2m%2Cprecipitation_probability&timezone=auto&latitude=39.29&longitude=-76.61&current=temperature_2m%2Capparent_temperature%2Crelative_humidity_2m%2Cwind_speed_10m%2Cweather_code",
+      "status": 200
+    },
+    {
+      "url": "https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&inprop=url&pithumbsize=640&titles=Baltimore",
+      "status": 200
+    },
+    {
+      "url": "https://api.fda.gov/drug/label.json?search=openfda.generic_name%3A%22Aspirin%22&limit=2",
+      "status": 200
+    },
+    {
+      "url": "https://openlibrary.org/search.json?q=Architecture+and+cities&limit=2&fields=key%2Ctitle%2Cauthor_name%2Cfirst_publish_year%2Ccover_i",
+      "status": 200
+    },
+    {
+      "url": "https://images-api.nasa.gov/search?q=earth&media_type=image&page_size=2",
+      "status": 200
+    },
+    {
+      "url": "https://geocoding-api.open-meteo.com/v1/search?name=Baltimore&count=8&language=en",
+      "status": 200
+    },
+    {
+      "url": "https://pokeapi.co/api/v2/pokemon/pikachu",
+      "status": 200
+    },
+    {
+      "url": "https://picsum.photos/v2/list?limit=2&page=2",
+      "status": 200
+    },
+    {
+      "url": "https://picsum.photos/v2/list?limit=2&page=2",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://api.github.com/search/repositories?q=vue&per_page=2&sort=stars",
+      "status": 200
+    },
+    {
+      "url": "https://api.crossref.org/works?query=WebMCP&rows=2&sort=published&order=desc",
+      "status": 200
+    },
+    {
+      "url": "https://api.artic.edu/api/v1/artworks/search?q=Monet&limit=2&page=1&fields=id%2Ctitle%2Cartist_title%2Cartist_display%2Cdate_display%2Cdate_start%2Cimage_id%2Cthumbnail%2Cclassification_title%2Cmedium_display%2Cis_public_domain",
+      "status": 200
+    },
+    {
+      "url": "https://api.artic.edu/api/v1/artworks/27992?fields=id%2Ctitle%2Cartist_title%2Cartist_display%2Cdate_display%2Cdate_start%2Cimage_id%2Cthumbnail%2Cclassification_title%2Cmedium_display%2Cis_public_domain",
+      "status": 200
+    },
+    {
+      "url": "https://api.crossref.org/works/10.1038%2Fnphys1170",
+      "status": 200
+    },
+    {
+      "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/caffeine/property/MolecularFormula,MolecularWeight,ConnectivitySMILES,SMILES,XLogP,TPSA,HBondDonorCount,HBondAcceptorCount/JSON",
+      "status": 200
+    },
+    {
+      "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/MolecularFormula,MolecularWeight,ConnectivitySMILES,SMILES,XLogP,TPSA,HBondDonorCount,HBondAcceptorCount/JSON",
+      "status": 200
+    },
+    {
+      "url": "https://clinicaltrials.gov/api/v2/studies?query.intr=caffeine&filter.overallStatus=RECRUITING&pageSize=2&format=json",
+      "status": 200
+    },
+    {
+      "url": "https://api.datausa.io/tesseract/data.jsonrecords?cube=acs_yg_total_population_5&drilldowns=State%2CYear&measures=Population&include=Year%3A2023&limit=2%2C0",
+      "status": 200
+    },
+    {
+      "url": "https://api.frankfurter.dev/v2/rates?base=USD&quotes=EUR",
+      "status": 200
+    },
+    {
+      "url": "https://api.openbrewerydb.org/v1/breweries?by_city=Baltimore&per_page=2",
+      "status": 200
+    },
+    {
+      "url": "https://date.nager.at/api/v3/PublicHolidays/2026/US",
+      "status": 200
+    },
+    {
+      "url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "status": 200
+    },
+    {
+      "url": "https://hacker-news.firebaseio.com/v0/item/49541256.json",
+      "status": 200
+    },
+    {
+      "url": "https://hacker-news.firebaseio.com/v0/item/49537553.json",
+      "status": 200
+    },
+    {
+      "url": "https://www.loc.gov/photos/?q=Baltimore&c=2&sp=1&fo=json&at=results%2Cpagination",
+      "status": 200
+    },
+    {
+      "url": "https://www.federalregister.gov/api/v1/documents.json?conditions%5Bterm%5D=clean+water&per_page=2&order=newest",
+      "status": 200
+    },
+    {
+      "url": "https://api.fdic.gov/banks/failures?limit=2&sort_by=FAILDATE&sort_order=DESC&fields=NAME%2CCITY%2CPSTALP%2CFAILDATE%2CCOST%2CRESTYPE",
+      "status": 200
+    },
+    {
+      "url": "https://api.tvmaze.com/search/shows?q=Star+Trek",
+      "status": 200
+    },
+    {
+      "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/LNS14000000",
+      "status": 200
+    },
+    {
+      "url": "https://api.openf1.org/v1/laps?session_key=9158",
+      "status": 200
+    },
+    {
+      "url": "https://api.zippopotam.us/US/21201",
+      "status": 200
+    },
+    {
+      "url": "https://api.worldbank.org/v2/country/US/indicator/SP.POP.TOTL?date=2015%3A2024&format=json&per_page=100",
+      "status": 200
+    },
+    {
+      "url": "https://gutendex.com/books/?search=Jane+Austen",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://127.0.0.1:5195/.netlify/functions/unsplash?query=Baltimore&per_page=2&page=1",
+      "status": 503
+    },
+    {
+      "url": "https://collectionapi.metmuseum.org/public/collection/v1/search?q=sunflowers&hasImages=true",
+      "status": 200
+    },
+    {
+      "url": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrsearch=Baltimore+skyline+filetype%3Abitmap&gsrnamespace=6&gsrlimit=2&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=640",
+      "status": 200
+    },
+    {
+      "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/437112",
+      "status": 200
+    },
+    {
+      "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/551786",
+      "status": 200
+    },
+    {
+      "url": "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=2&days=30",
+      "status": 200
+    },
+    {
+      "url": "https://api.inaturalist.org/v1/observations?taxon_name=Corvus+corax&per_page=2&page=1&photos=true&order_by=observed_on",
+      "status": 200
+    },
+    {
+      "url": "https://api.gbif.org/v1/occurrence/search?scientificName=Corvus+corax&country=US&limit=2&hasCoordinate=true",
+      "status": 200
+    },
+    {
+      "url": "https://api.nobelprize.org/2.1/nobelPrizes?nobelPrizeYear=2024&limit=2",
+      "status": 200
+    },
+    {
+      "url": "https://api.weather.gov/alerts/active?area=MD",
+      "status": 200
+    }
+  ]
+}

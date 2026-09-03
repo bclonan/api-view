@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { blockStyle } from "../runtime/blockStyle";
+import BlockStyleEditor from "./BlockStyleEditor.vue";
+import { computed, nextTick, ref } from "vue";
 import {
   RefreshCw,
   MoreHorizontal,
@@ -9,6 +11,9 @@ import {
   Trash2,
   X,
   AlertCircle,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-vue-next";
 import { useEditor } from "../stores/editor";
 import { useWorkspace } from "../stores/workspace";
@@ -29,10 +34,24 @@ import { compatibleComponents } from "../blocks/definitions";
 import { discoverFields, flattenFields } from "../runtime/fields";
 import { rowsOf } from "../runtime/normalize";
 import { download, requestCode } from "../runtime/download";
+import { blockOutcome, recoveryFor } from "../runtime/outcomes";
 const props = defineProps<{ widget: Widget }>();
 const store = useWorkspace();
 const editor = useEditor();
 const display = computed(() => store.resultForWidget(props.widget.id));
+const outcome = computed(() => blockOutcome(props.widget, display.value));
+const recovery = computed(() =>
+  props.widget.error ? recoveryFor(props.widget.error) : undefined,
+);
+const hasSample = computed(() => {
+  const config = source.value.operation.sourceConfig;
+  return (
+    !config ||
+    (config.sampleResponse != null &&
+      (!Array.isArray(config.sampleResponse) ||
+        config.sampleResponse.length > 0))
+  );
+});
 const components = computed(() => compatibleComponents(display.value.result));
 const boundSources = computed(() => [
   ...new Set(display.value.provenance.map((entry) => entry.apiId)),
@@ -53,6 +72,18 @@ const freshnessLabel = computed(() => {
   return `Updated ${new Date(Math.max(...times)).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
 });
 const dataModeLabel = computed(() => {
+  if (props.widget.content)
+    return `${props.widget.contentMeta?.origin === "agent" ? "Agent supplied" : props.widget.contentMeta?.origin === "computed" ? "Calculated" : "User supplied"} · Saved on this device`;
+  if (
+    props.widget.derived &&
+    display.value.provenance.length &&
+    display.value.provenance.every(
+      (entry) =>
+        store.widgets.find((w) => w.id === entry.sourceId)?.invocation.apiId ===
+        "canvas-content",
+    )
+  )
+    return "Connected local content";
   const modes = new Set(
     display.value.provenance.map(
       (entry) =>
@@ -70,6 +101,16 @@ const rawFields = computed(() =>
   flattenFields(discoverFields(props.widget.rawResponse, false)),
 );
 const menu = ref(false);
+const arranging = ref(false);
+const position = computed(() =>
+  store.widgets.findIndex((w) => w.id === props.widget.id),
+);
+async function moveTo(index: number) {
+  const focused = document.activeElement as HTMLElement | null;
+  store.moveWidget(props.widget.id, index);
+  await nextTick();
+  if (focused?.isConnected) focused.focus();
+}
 const settings = ref(false);
 const tab = ref("Interface");
 const error = ref("");
@@ -179,13 +220,28 @@ async function setProperty(
   <article
     class="widget"
     :class="{ 'widget-compact': widget.presentation.props?.compact }"
-    :style="{ '--widget-span': widget.width }"
+    :style="{
+      '--widget-span': widget.width,
+      ...blockStyle(widget.presentation.props?.style),
+    }"
     :data-widget-id="widget.id"
     :data-status="widget.status"
     :aria-label="widget.title"
     :aria-busy="busy"
   >
     <header class="widget-header">
+      <button
+        class="icon-button reorder-handle"
+        data-reorder-handle
+        :draggable="false"
+        :aria-label="`Reorder ${widget.title}`"
+        aria-describedby="reorder-help"
+        :aria-expanded="arranging"
+        title="Drag to reorder, or click to choose a position"
+        @click="arranging = !arranging"
+      >
+        <GripVertical :size="16" />
+      </button>
       <input
         type="checkbox"
         class="card-select"
@@ -215,6 +271,7 @@ async function setProperty(
         </p>
       </div>
       <button
+        v-if="!widget.content"
         class="icon-button"
         :aria-label="`Refresh ${widget.title}`"
         :disabled="busy"
@@ -233,6 +290,24 @@ async function setProperty(
         </button>
         <div v-if="menu" class="widget-menu" @keydown.esc="menu = false">
           <button
+            v-if="widget.content"
+            @click="
+              editor.contentEditor = { blockId: widget.id };
+              menu = false;
+            "
+          >
+            Edit content
+          </button>
+          <button
+            @click="
+              editor.questionScope = [widget.id];
+              menu = false;
+            "
+          >
+            Ask about this card
+          </button>
+          <button
+            v-if="!widget.content"
             @click="
               settings = !settings;
               menu = false;
@@ -282,6 +357,53 @@ async function setProperty(
         </div>
       </div>
     </header>
+    <div
+      v-if="arranging"
+      class="reorder-controls"
+      @keydown.esc="arranging = false"
+    >
+      <label
+        >Position
+        <select
+          :aria-label="`Position of ${widget.title}`"
+          :value="position"
+          @change="moveTo(Number(($event.target as HTMLSelectElement).value))"
+        >
+          <option
+            v-for="(card, index) in store.widgets"
+            :key="card.id"
+            :value="index"
+          >
+            {{ index + 1 }} of {{ store.widgets.length }}
+          </option>
+        </select>
+      </label>
+      <button
+        class="button"
+        :disabled="position === 0"
+        @click="moveTo(position - 1)"
+      >
+        <ArrowUp :size="14" /> Earlier
+      </button>
+      <button
+        class="button"
+        :disabled="position === store.widgets.length - 1"
+        @click="moveTo(position + 1)"
+      >
+        <ArrowDown :size="14" /> Later
+      </button>
+      <span class="sr-only" role="status"
+        >{{ widget.title }}, position {{ position + 1 }} of
+        {{ store.widgets.length }}</span
+      >
+      <button
+        class="icon-button"
+        aria-label="Close reorder controls"
+        @click="arranging = false"
+      >
+        <X :size="16" />
+      </button>
+    </div>
     <nav class="widget-tabs" aria-label="Widget views">
       <button
         v-for="view in ['Interface', 'Data', 'Request', 'Code']"
@@ -334,6 +456,27 @@ async function setProperty(
         />
       </div>
       <div v-else-if="tab === 'Presentation'" class="presentation-settings">
+        <BlockStyleEditor
+          :model-value="widget.presentation.props?.style"
+          @update:model-value="
+            store.updateWidget(
+              widget.id,
+              {
+                presentation: {
+                  props: { ...widget.presentation.props, style: $event },
+                },
+              },
+              false,
+            )
+          "
+        />
+        <button
+          v-if="widget.content"
+          class="button"
+          @click="editor.contentEditor = { blockId: widget.id }"
+        >
+          Edit content
+        </button>
         <label
           >Block title<input
             :value="widget.title"
@@ -376,7 +519,11 @@ async function setProperty(
             "
           >
             <option v-for="n in [3, 4, 6, 8, 12]" :value="n" :key="n">
-              {{ n === 12 ? "Full width" : `${n} of 12 columns` }}
+              {{
+                n === 12
+                  ? "Full width"
+                  : `${n} of 12 columns · grows to fill row`
+              }}
             </option>
           </select></label
         ><label
@@ -509,6 +656,22 @@ async function setProperty(
           Changes use the data already loaded. No new request.
         </p>
       </div>
+      <div
+        v-else-if="widget.content && ['Request', 'Code'].includes(tab)"
+        class="request-view"
+      >
+        <p>
+          Saved content, no API request. This specification can be edited or
+          returned by a WebMCP agent.
+        </p>
+        <JsonBlock :value="widget.content" />
+        <button
+          class="button"
+          @click="editor.contentEditor = { blockId: widget.id }"
+        >
+          Edit content
+        </button>
+      </div>
       <div v-else-if="tab === 'Request'" class="request-view">
         <span class="method">{{ source.operation.method ?? "GET" }}</span
         ><a :href="url" target="_blank" rel="noopener noreferrer">{{ url }}</a>
@@ -592,6 +755,9 @@ async function setProperty(
         role="status"
       >
         <span class="sr-only">Loading {{ widget.title }}</span>
+        <p class="tiny muted">
+          Loading this source, up to 20 seconds. Other cards remain available.
+        </p>
         <div></div>
         <div></div>
         <div></div>
@@ -604,6 +770,7 @@ async function setProperty(
         <AlertCircle :size="24" />
         <h3>{{ widget.error?.title }}</h3>
         <p>{{ widget.error?.message }}</p>
+        <p class="tiny muted">{{ recovery?.recovery }}</p>
         <p v-if="widget.error?.retryAfter">
           Retry after {{ widget.error.retryAfter }} seconds.
         </p>
@@ -611,7 +778,7 @@ async function setProperty(
           <button class="button" @click="store.refreshWidget(widget.id)">
             Retry request</button
           ><button
-            v-if="widget.invocation.mode === 'live'"
+            v-if="widget.invocation.mode === 'live' && hasSample"
             class="button"
             @click="store.updateWidget(widget.id, { mode: 'sample' })"
           >
@@ -621,6 +788,14 @@ async function setProperty(
         <button class="text-button" @click="settings = true">
           Edit inputs
         </button>
+        <details v-if="display.result">
+          <summary>Show previously loaded data, refresh failed</summary>
+          <BlockRenderer
+            :result="display.result"
+            :presentation="widget.presentation"
+            :block-id="widget.id"
+          />
+        </details>
       </div>
       <TableBlock
         v-else-if="tab === 'Data' && display.result"
@@ -628,6 +803,7 @@ async function setProperty(
         :fields="display.result.fields"
       />
       <BlockRenderer
+        @issue="store.setViewError(widget.id, $event)"
         @settings="
           store.updateWidget(
             widget.id,
@@ -642,6 +818,7 @@ async function setProperty(
         v-else-if="display.result"
         :result="display.result"
         :presentation="widget.presentation"
+        :block-id="widget.id"
       />
       <div v-else class="empty-block">
         <h3>Ready when you are</h3>
@@ -656,6 +833,10 @@ async function setProperty(
         role="status"
       >
         {{ issue }}
+      </p>
+      <p v-if="outcome.status === 'blocked'" class="notice" role="status">
+        This block is waiting for its source data. Retry the source cards listed
+        in Data bindings; other cards remain available.
       </p>
     </div>
     <footer class="widget-footer">

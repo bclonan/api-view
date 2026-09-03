@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import { pathParts, readPath } from "../runtime/fields";
+import { pathParts } from "../runtime/fields";
 import type { ApiDefinition, CustomApiConfig, Row } from "../types";
 import { publicUrl } from "../runtime/requestPolicy";
 import { inferStructure } from "../runtime/structure";
@@ -188,9 +188,7 @@ export function compileCustomApi(input: unknown): {
     sample: () => structuredClone(config.sampleResponse),
     extract: (raw) =>
       transformData(
-        config.responsePath
-          ? readPath(raw, config.responsePath)
-          : inferStructure(raw).data,
+        inferStructure(raw, config.responsePath || undefined).data,
         config.transforms ?? [],
       ),
     collectionPath: config.responsePath || undefined,

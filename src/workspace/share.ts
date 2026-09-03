@@ -3,6 +3,9 @@ import type { Widget, TaggedField, CustomApiConfig } from "../types";
 import { redactPublic } from "../sources/security";
 import { validateDataSettings, validateGraph } from "../runtime/bindings";
 import { presentations } from "../types";
+import { validateContent, contentResult } from "../runtime/content";
+import { publicFileReferences } from "../runtime/localFiles";
+import { validateBlockStyle } from "../runtime/blockStyle";
 
 export interface ShareState {
   version: 1;
@@ -21,19 +24,30 @@ export function shareState(store: ReturnType<typeof useWorkspace>): ShareState {
     title: store.title,
     capturedAt: new Date().toISOString(),
     settings: { columns: 12, showProvenance: true },
-    sources: store
-      .exportWorkspace()
-      .customApis.map((api) => ({
-        ...api,
-        headers: {},
-        body: undefined,
-        inputs: api.inputs,
-        sampleResponse: [],
-      })),
+    sources: store.exportWorkspace().customApis.map((api) => ({
+      ...api,
+      headers: {},
+      body: undefined,
+      inputs: api.inputs,
+      sampleResponse: [],
+    })),
     widgets: store.widgets.map((w) => JSON.parse(JSON.stringify(w))),
     selectedFields: store.fieldSelections,
     warnings,
   };
+  for (const widget of state.widgets) {
+    if (widget.content?.files?.length) {
+      warnings.push(
+        "Local file contents and device paths are excluded. Any values copied into other cards remain part of the snapshot.",
+      );
+      widget.content = publicFileReferences(
+        widget.content,
+      ) as typeof widget.content;
+      widget.rawResponse = widget.content;
+      if (widget.contentMeta)
+        widget.result = contentResult(widget.content, widget.contentMeta);
+    }
+  }
   if (
     store
       .exportWorkspace()
@@ -97,6 +111,10 @@ export function decodeShare(encoded: string): ShareState {
     )
       throw new Error("Invalid block in the shared workspace.");
     ids.add(w.id);
+    if (w.content) validateContent(w.content);
+    validateBlockStyle(w.presentation.props?.style);
+    if (w.result?.metadata?.canvasContent)
+      validateContent(w.result.metadata.canvasContent);
     validateDataSettings(w.bindings, w.transforms);
     if (
       w.result &&

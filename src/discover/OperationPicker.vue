@@ -103,11 +103,23 @@ async function add(args: Row) {
     <p class="notice" v-if="source.api.liveNotice">
       {{ source.api.liveNotice }}
     </p>
+    <p class="notice" v-if="source.api.keySetup">
+      {{ source.api.keySetup.message }}
+      <a
+        :href="source.api.keySetup.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Create an API application ↗</a
+      >
+    </p>
+    <p class="tiny muted" v-if="source.api.accessNote">
+      {{ source.api.accessNote }}
+    </p>
     <p class="notice" v-if="mode === 'sample'">
       Sample data demonstrates the layout. Values are illustrative and may not
       match your inputs.
     </p>
-    <p class="tiny muted" v-else>
+    <p class="tiny muted" v-else-if="!source.api.keySetup">
       Live requests go directly to this provider from your browser.
     </p>
     <details>

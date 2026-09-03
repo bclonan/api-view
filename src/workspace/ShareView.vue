@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { boundResult } from "../runtime/bindings";
+import { contentIssues } from "../runtime/content";
 import { decodeShare } from "./share";
 import BlockRenderer from "../blocks/BlockRenderer.vue";
+import { blockStyle } from "../runtime/blockStyle";
 function safeUrl(value: unknown) {
   try {
     const url = new URL(String(value));
@@ -21,10 +23,12 @@ const snapshot = computed(() => {
 });
 const blocks = computed(
   () =>
-    snapshot.value.value?.widgets.map((w) => ({
-      widget: w,
-      ...boundResult(w, snapshot.value.value!.widgets),
-    })) ?? [],
+    snapshot.value.value?.widgets.map((w) => {
+      const widgets = snapshot.value.value!.widgets;
+      const display = boundResult(w, widgets);
+      display.issues.push(...contentIssues(w, widgets));
+      return { widget: w, ...display };
+    }) ?? [],
 );
 </script>
 <template>
@@ -50,23 +54,32 @@ const blocks = computed(
           v-for="block in blocks"
           :key="block.widget.id"
           class="widget share-card"
-          :style="{ '--widget-span': block.widget.width }"
+          :style="{
+            '--widget-span': block.widget.width,
+            ...blockStyle(block.widget.presentation.props?.style),
+          }"
           :aria-label="block.widget.title"
         >
           <h2>{{ block.widget.title }}</h2>
           <p class="tiny muted">
             {{
-              block.widget.derived
-                ? "Connected sources"
-                : (snapshot.value.sources.find(
-                    (s) => s.id === block.widget.invocation.apiId,
-                  )?.name ?? block.widget.invocation.apiId)
+              block.widget.content
+                ? `${block.widget.contentMeta?.origin ?? "user"} supplied content`
+                : block.widget.derived
+                  ? "Connected sources"
+                  : (snapshot.value.sources.find(
+                      (s) => s.id === block.widget.invocation.apiId,
+                    )?.name ?? block.widget.invocation.apiId)
             }}
             ·
             {{
-              block.widget.invocation.mode === "sample"
-                ? "Sample data"
-                : "Live source snapshot"
+              block.widget.content
+                ? "Saved content snapshot"
+                : block.widget.derived
+                  ? "Connected source snapshot"
+                  : block.widget.invocation.mode === "sample"
+                    ? "Sample data"
+                    : "Live source snapshot"
             }}
           </p>
           <p v-for="issue in block.issues" :key="issue" class="notice">
@@ -77,6 +90,11 @@ const blocks = computed(
             v-if="block.result"
             :result="block.result"
             :presentation="block.widget.presentation"
+            :answer-titles="
+              snapshot.value.widgets
+                .filter((w) => w.content?.answerTo === block.widget.id)
+                .map((w) => w.title)
+            "
           />
           <p v-else>
             {{

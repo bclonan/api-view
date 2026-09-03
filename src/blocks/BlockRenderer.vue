@@ -3,19 +3,37 @@ import { computed, defineAsyncComponent, provide } from "vue";
 import { CloudSun, Droplets, Wind, ImageOff, BookOpen } from "lucide-vue-next";
 import { rowsOf, isRow, numericTypes, numberOf } from "../runtime/normalize";
 import { readPath } from "../runtime/fields";
+import { mappedPriceRow } from "../runtime/market";
+import { imageCredits } from "../runtime/imageCredits";
 import ValueRenderer from "../values/ValueRenderer.vue";
 import TableBlock from "./TableBlock.vue";
 const ChartBlock = defineAsyncComponent(() => import("./ChartBlock.vue"));
 import MapBlock from "./MapBlock.vue";
 import JsonBlock from "./JsonBlock.vue";
 import StructuredBlock from "./StructuredBlock.vue";
-import type { SemanticResult, PresentationSpec, Row } from "../types";
+import ScenarioBlock from "./ScenarioBlock.vue";
+import EmbedBlock from "./EmbedBlock.vue";
+import ContentBlock from "./ContentBlock.vue";
+const StockChart = defineAsyncComponent(() => import("./StockChart.vue"));
+import { scenarioKinds } from "../runtime/scenarios";
+import type {
+  SemanticResult,
+  PresentationSpec,
+  Row,
+  CanvasContent,
+  NormalizedError,
+} from "../types";
 const props = defineProps<{
   result: SemanticResult;
   presentation: PresentationSpec;
   readonly?: boolean;
+  blockId?: string;
+  answerTitles?: string[];
 }>();
-const emit = defineEmits<{ settings: [value: PresentationSpec["props"]] }>();
+const emit = defineEmits<{
+  settings: [value: PresentationSpec["props"]];
+  issue: [value?: NormalizedError];
+}>();
 const type = computed(() =>
   props.presentation.type === "auto"
     ? props.result.suggestedPresentations[0]
@@ -39,6 +57,10 @@ const currency = computed(() => {
   return typeof code === "string" && /^[A-Z]{3}$/.test(code) ? code : "";
 });
 provide("api-canvas-currency", currency);
+provide(
+  "api-canvas-image-credits",
+  computed(() => imageCredits(rows.value)),
+);
 const fields = computed(() =>
   props.presentation.fields !== undefined
     ? props.presentation.fields.flatMap((key) =>
@@ -66,7 +88,17 @@ const fields = computed(() =>
               ),
           )
           .slice(0, 10)
-      : props.result.fields,
+      : [
+            "cards",
+            "list",
+            "record",
+            "key-value",
+            "book",
+            "drug",
+            "link-preview",
+          ].includes(type.value)
+        ? props.result.fields.filter((f) => !/[.[]/.test(f.key)).slice(0, 12)
+        : props.result.fields,
 );
 const xField = computed(
   () =>
@@ -191,20 +223,18 @@ const canChart = computed(
       (rows.value.length <= 12 &&
         rows.value.every((r) => numberOf(r[yField.value]) >= 0))),
 );
-const heading = (r: Row) =>
-  String(
-    props.presentation.fields?.length
-      ? (r[
-          fields.value.find((f) => !numericTypes.includes(f.type))?.key ?? ""
-        ] ?? "Record")
-      : (r.title ??
-          r.name ??
-          r.place ??
-          r[props.result.dimensions[0]] ??
-          "Record"),
+const heading = (r: Row) => {
+  const values = props.presentation.fields?.length
+    ? fields.value
+        .filter((f) => !numericTypes.includes(f.type))
+        .map((f) => r[f.key])
+    : [r.title, r.name, r.place, r[props.result.dimensions[0]]];
+  return String(
+    values.find(
+      (v) => (typeof v === "string" && v.trim()) || typeof v === "number",
+    ) ?? "Record",
   );
-const url = (v: unknown) =>
-  typeof v === "string" && /^https?:\/\//i.test(v) ? v : undefined;
+};
 const mediaField = computed(() =>
   props.result.fields.find((f) => ["audio", "video"].includes(f.type)),
 );
@@ -221,6 +251,40 @@ const datedRows = computed(() =>
     <p>Try a broader search or different inputs.</p>
   </div>
   <JsonBlock v-else-if="type === 'json'" :value="result.data" />
+  <ContentBlock
+    v-else-if="type === 'note' || type === 'file'"
+    :content="
+      (result.metadata.canvasContent ?? rows[0]) as Partial<CanvasContent>
+    "
+    :row="rows[0]"
+    :kind="type"
+    :readonly="readonly"
+    :block-id="blockId"
+    :answer-titles="answerTitles"
+  />
+  <EmbedBlock
+    v-else-if="['embed', 'video', 'audio', 'media'].includes(type)"
+    :row="mediaField ? { ...rows[0], url: rows[0][mediaField.key] } : rows[0]"
+    :kind="type"
+    @issue="emit('issue', $event)"
+  />
+  <StockChart
+    v-else-if="type === 'stock-chart'"
+    :settings="presentation.props"
+    @settings="emit('settings', $event)"
+    :rows="rows.map((row) => mappedPriceRow(row, presentation))"
+  />
+  <ScenarioBlock
+    v-else-if="scenarioKinds.some((kind) => kind === type)"
+    :kind="type"
+    :rows="
+      presentation.fields
+        ? rows.map((row) =>
+            Object.fromEntries(fields.map((f) => [f.key, row[f.key]])),
+          )
+        : rows
+    "
+  />
   <TableBlock
     :settings="presentation.props"
     :readonly="readonly"
@@ -343,10 +407,10 @@ const datedRows = computed(() =>
     />
   </div>
   <MapBlock
-    v-else-if="type === 'map' && latitude && longitude"
+    v-else-if="type === 'map'"
     :rows="rows"
-    :latitude="latitude"
-    :longitude="longitude"
+    :latitude="latitude ?? 'latitude'"
+    :longitude="longitude ?? 'longitude'"
   />
   <div
     v-else-if="['gallery', 'image'].includes(type) && imageField"
@@ -396,23 +460,6 @@ const datedRows = computed(() =>
         {{ rows[0][field.key] }}
       </p></template
     >
-  </div>
-  <div
-    v-else-if="type === 'media' && mediaField && url(rows[0][mediaField.key])"
-    class="media-block"
-  >
-    <video
-      v-if="mediaField.type === 'video'"
-      :src="url(rows[0][mediaField.key])"
-      controls
-      preload="metadata"
-    /><audio
-      v-else
-      :src="url(rows[0][mediaField.key])"
-      controls
-      preload="metadata"
-    />
-    <p>{{ heading(rows[0]) }}</p>
   </div>
   <div v-else-if="type === 'timeline'" class="timeline-block">
     <article v-for="(row, i) in datedRows" :key="i">
@@ -467,7 +514,21 @@ const datedRows = computed(() =>
             :key="field.key"
             ><dt>{{ field.label }}</dt>
             <dd>
-              <details v-if="String(row[field.key] ?? '').length > 300">
+              <details
+                v-if="
+                  typeof row[field.key] === 'object' && row[field.key] !== null
+                "
+              >
+                <summary>
+                  {{
+                    Array.isArray(row[field.key])
+                      ? `${(row[field.key] as unknown[]).length} items`
+                      : "Object details"
+                  }}
+                </summary>
+                <JsonBlock :value="row[field.key]" />
+              </details>
+              <details v-else-if="String(row[field.key] ?? '').length > 300">
                 <summary>Read {{ field.label.toLowerCase() }}</summary>
                 <p class="long-text">
                   <ValueRenderer
@@ -485,6 +546,10 @@ const datedRows = computed(() =>
               /></dd
           ></template>
         </dl>
+        <details v-if="type !== 'document'" class="tiny muted">
+          <summary>All record fields</summary>
+          <JsonBlock :value="row" />
+        </details>
         <p v-if="type === 'drug'" class="tiny muted">
           Published label information. Open the source documentation for
           context.

@@ -1,5 +1,25 @@
 # Verification
 
+## Content, media and canvas answers, September 2, 2026
+
+Production deployment `6a98df14f9cdd313abe8ec1f` is live at https://api-canvas-bclonan.netlify.app. The existing Netlify configuration and Vue/Pinia architecture remain in place. See [content workflow notes](CONTENT_WORKFLOWS.md) for changed files, the versioned agent contract, supported players and limits.
+
+`npm run verify` passed lint, type checking, 208 unit tests, the production build and 35 local Playwright workflows. After the final shared-source wording change, lint and the production build passed again. `npx playwright test --config playwright.production.config.ts tests/e2e/content.spec.ts` passed all five final production workflows at 320, 375, 768, 1024 and 1440 px. These tests use controlled media failures and illustrative prices. They also verify that editing stock content preserves its selected chart style. `git diff --check` passed. Vite still reports its advisory about chunks larger than 500 KB.
+
+The in-app browser used native WebMCP to duplicate the existing sports example into a separate dashboard named "Content, media and canvas answers". It loaded real MLB and Open-Meteo responses, read both through `prepare_canvas_question`, and saved a cited answer that distinguishes the away-game venue from the Baltimore map. It also created a downloadable Markdown file, a labeled DEMO stock series and a calculated summary. The MDN flower video played to its 5.059-second end with no media error. The 375 px content editor and share view had no horizontal overflow.
+
+Reload retained eight cards and five dashboards. A changed raw Open-Meteo response triggered review notices on related authored content. The shared snapshot retained those notices, citations, media and the derived game/city block, with no editor controls. Final in-app reload confirmed both the updated editor and clean share renderer. Automated checks confirmed 36 registered native tool definitions; native calls verified the new content, question and summary tools in the app browser.
+
+Production screenshots of the controlled browser workflow are saved at `artifacts/release/content-editor-1440.png`, `content-share-1440.png`, `content-editor-375.png` and `content-share-375.png`. Open-ended answers require a connected agent. Live stock quotes require a supplied source. External providers can block embedding or playback. No source failure is silently replaced with invented data.
+
+## Dashboard layout and reordering, September 2, 2026
+
+Production deployment `6a98c979bccd3d16aa714489` passed lint, type-check, 191 unit tests, build and all 30 local browser workflows. Five focused production workflows verified filled rows, drag and keyboard reordering, mobile position controls, WebMCP order, persistence and clean share layout across 320, 375, 768, 1024 and 1440 px. The in-app browser also verified normal position controls, reload persistence and keyboard reordering on the existing three-card sports demo. See [dashboard layout notes](DASHBOARD_LAYOUT.md).
+
+## Sports and adaptive cards, September 2, 2026
+
+Production deployment `6a98c39bbbd483ec3ee8e546` passed lint, type-check, 191 unit tests, build, and all 25 local and production browser workflows. Real MLB and Open-Meteo data also passed a separate live test and an in-app WebMCP flow with a derived card and clean share view. ESPN and a local-news RSS feed returned explicit access failures. See [scenario release notes](SCENARIO_BLOCKS.md) for changed files, screenshots and limits.
+
 ## Generic sources and sharing, September 2, 2026
 
 Production deployment `6a988f37c0db89b8ffc83f15` passed lint, type-check, 161 unit tests, the build, and all 20 local and production browser workflows. A separate real-network test passed with the Nobel Prize API and an MDN educational HTML table. Native WebMCP registered 31 tools on production. See [public source release notes](PUBLIC_SOURCES.md) for changed files, supported scope, screenshots and the in-app checks.

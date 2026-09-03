@@ -95,6 +95,6 @@ export const labelFor = (key: string) =>
     .replace(/^./, (c) => c.toUpperCase());
 
 export const isYearField = (key: string) =>
-  /(^|[_.\s["-])year($|[_\s"\]-])/.test(
+  /(^|[_.\s["-])(year|season)($|[_\s"\]-])/.test(
     key.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase(),
   );

@@ -373,6 +373,11 @@ export function createToolRunner(store: ReturnType<typeof useWorkspace>) {
             detail: normalizeError(error),
           };
     }
+    if (
+      (output as any)?.ok === false ||
+      ["error", "blocked"].includes((output as any)?.outcome?.status)
+    )
+      ok = false;
     toolLog.value.unshift({
       id: crypto.randomUUID(),
       tool: name,

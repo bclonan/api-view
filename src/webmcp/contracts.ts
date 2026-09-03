@@ -2,6 +2,7 @@ import { workspaceContracts } from "./workspaceTools";
 import { presentations } from "../types";
 import { bindingsSchema, transformsSchema } from "../runtime/bindings";
 import { customApiSchema } from "../api/custom";
+import { blockStyleSchema } from "../runtime/blockStyle";
 const text = { type: "string", minLength: 1, maxLength: 120 };
 const widgetId = {
   ...text,
@@ -48,11 +49,14 @@ const mapping = object({
     maxItems: 30,
   },
   props: object({
+    style: blockStyleSchema,
     filter: { type: "string", maxLength: 500 },
     sort: { type: "string", maxLength: 500 },
     sortDirection: { enum: ["asc", "desc"] },
     compact: { type: "boolean" },
     numberFormat: { enum: ["compact", "standard"] },
+    stockStyle: { enum: ["candles", "line"] },
+    stockSymbol: { type: "string", maxLength: 120 },
     showSource: { type: "boolean" },
   }),
 });

@@ -38,8 +38,14 @@ const fieldOptions = computed(() =>
 );
 const definition = computed(
   () =>
-    componentDefinitions.find((d) => d.id === props.widget.presentation.type) ??
-    componentDefinitions[0],
+    componentDefinitions.find(
+      (d) =>
+        d.id ===
+        (props.widget.presentation.type === "auto"
+          ? store.resultForWidget(props.widget.id).result
+              ?.suggestedPresentations[0]
+          : props.widget.presentation.type),
+    ) ?? componentDefinitions[0],
 );
 const dataFields = computed(
   () => store.resultForWidget(props.widget.id).result?.fields ?? [],
@@ -89,6 +95,7 @@ function addRowsRule() {
 <template>
   <section class="binding-editor" aria-label="Data bindings">
     <h3>Data bindings</h3>
+    <p class="tiny muted">{{ definition.description }}</p>
     <p class="tiny muted">
       Choose which values fill this view. Leave bindings empty to use the
       original fields. Other widgets can supply values for a shared summary.

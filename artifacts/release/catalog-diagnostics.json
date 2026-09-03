@@ -1,0 +1,27 @@
+{
+  "testedAt": "2026-09-03T03:05:40.306Z",
+  "context": "Server-side endpoint diagnostics, not evidence of browser access",
+  "results": [
+    {
+      "id": "treasury",
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?page%5Bsize%5D=2&sort=-record_date&fields=record_date%2Ctot_pub_debt_out_amt%2Cdebt_held_public_amt",
+      "status": 200,
+      "contentType": "application/json",
+      "cors": "*",
+      "excerpt": "{\"data\":[{\"record_date\":\"2026-09-01\",\"tot_pub_debt_out_amt\":\"40112464593206.30\",\"debt_held_public_amt\":\"32420529452197.11\"},{\"record_date\":\"2026-08-31\",\"tot_pub_debt_out_amt\":\"40175641071634.14\",\"debt_held_public_amt\":\"32414988847175.22\"}],\"meta\":{\"count\":2,\"labels\":{\"record_date\":\"Record Date\",\"tot_pub_debt_out_amt\":\"Total Public Debt Outstanding\""
+    },
+    {
+      "id": "gutendex",
+      "url": "https://gutendex.com/books/?search=Jane%20Austen",
+      "error": "The operation was aborted due to timeout"
+    },
+    {
+      "id": "census",
+      "url": "https://api.census.gov/data/2020/dec/pl?get=NAME,P1_001N&for=state:*",
+      "status": 200,
+      "contentType": "text/html",
+      "cors": "*",
+      "excerpt": "<html style=\"font-size: 14px;\">\n\n<head>\n    <title>Missing Key</title>\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\">\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"assets/styles.css\">\n    <script type=\"text/javascript\" src=\"assets/jquery-1.4.4.min.js\"></script>\n    <script type=\"text/javascript\">\n        $(document).ready(function "
+    }
+  ]
+}

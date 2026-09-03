@@ -15,6 +15,8 @@ import pokeapi from "./providers/pokeapi";
 import picsum from "./providers/picsum";
 import { firstWave } from "./providers/public-data";
 import { morePublicData } from "./providers/more-public-data";
+import { contentApi } from "./content";
+import { openCollections } from "./providers/open-collections";
 export const apis: ApiDefinition[] = shallowReactive([
   treasury,
   openMeteo,
@@ -30,6 +32,7 @@ export const apis: ApiDefinition[] = shallowReactive([
   picsum,
   ...firstWave,
   ...morePublicData,
+  ...openCollections,
 ]);
 export const customApis: CustomApiConfig[] = shallowReactive([]);
 export function registerCustomApi(value: unknown) {
@@ -62,7 +65,8 @@ export function restoreCustomApis(definitions: unknown[]) {
   customApis.splice(0, customApis.length, ...validated.map((d) => d.config));
 }
 export function getOperation(apiId: string, operationId: string) {
-  const api = apis.find((a) => a.id === apiId);
+  const api =
+    apiId === contentApi.id ? contentApi : apis.find((a) => a.id === apiId);
   const operation = api?.operations.find((o) => o.id === operationId);
   if (!api || !operation)
     throw new Error(
@@ -116,7 +120,8 @@ export function searchApis(
         description: operation.description,
         categories: api.categories,
         authentication: api.authentication ?? "none",
-        availability: api.liveNotice ?? "Live and sample",
+        availability: api.liveNotice ?? api.accessNote ?? "Live and sample",
+        ...(api.keySetup ? { keySetup: api.keySetup } : {}),
         suggestedPresentations: [
           operation.preferred ?? "auto",
           "table",

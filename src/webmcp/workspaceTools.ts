@@ -8,6 +8,17 @@ import { pageContext } from "../workspace/context";
 import { useEditor } from "../stores/editor";
 import { shareLink } from "../workspace/share";
 import { stableId } from "../sources/security";
+import { normalizeError } from "../runtime/errors";
+import { recoveryFor } from "../runtime/outcomes";
+import { contentSchema } from "../runtime/content";
+import { presentation } from "../runtime/presentationSchema";
+import {
+  prepareQuestion,
+  prepareSavedQuestion,
+  summarizeCanvas,
+  answerQuestion,
+  answerBundleSchema,
+} from "../workspace/insights";
 import type { useWorkspace } from "../stores/workspace";
 const str = { type: "string", minLength: 1, maxLength: 120 },
   path = { type: "string", maxLength: 500 },
@@ -19,24 +30,14 @@ const object = (
 const revision = { type: "integer", minimum: 0 };
 const target = { blockId: str, expectedRevision: revision };
 const width = { type: "integer", enum: [3, 4, 6, 8, 12] };
-const presentation = object(
-  {
-    type: { enum: [...presentations] },
-    xField: path,
-    yField: path,
-    fields: { type: "array", items: path, maxItems: 30 },
-    series: { type: "array", items: path, maxItems: 4 },
-    props: object({
-      filter: { type: "string", maxLength: 500 },
-      sort: { type: "string", maxLength: 500 },
-      sortDirection: { enum: ["asc", "desc"] },
-      compact: { type: "boolean" },
-      showSource: { type: "boolean" },
-      numberFormat: { enum: ["compact", "standard"] },
-    }),
-  },
-  ["type"],
-);
+const blockIds = {
+  type: "array",
+  items: str,
+  maxItems: 40,
+  minItems: 1,
+  uniqueItems: true,
+};
+
 const inspection = {
   url,
   format: { enum: [...sourceFormats] },
@@ -80,10 +81,29 @@ export const workspaceOutputSchema = object(
     ok: { type: "boolean" },
     action: str,
     revision,
+    status: {
+      enum: [
+        "complete",
+        "partial",
+        "loading",
+        "empty",
+        "blocked",
+        "error",
+        "needs-input",
+        "awaiting-review",
+        "awaiting-confirmation",
+      ],
+    },
     warnings: { type: "array", items: { type: "string" } },
     data: { type: ["object", "array", "string", "number", "boolean", "null"] },
     error: object(
-      { code: str, message: { type: "string" }, recovery: { type: "string" } },
+      {
+        code: str,
+        message: { type: "string" },
+        recovery: { type: "string" },
+        retryable: { type: "boolean" },
+        retryAfter: { type: "number" },
+      },
       ["code", "message", "recovery"],
     ),
   },
@@ -108,6 +128,58 @@ function tool(
   };
 }
 export const workspaceContracts = [
+  tool(
+    "get_content_spec",
+    "Read the versioned content contract and examples for editable notes, cited answers, search results, files, datasets and embeds. No HTML or script execution.",
+    object({}),
+    true,
+  ),
+  tool(
+    "create_content_block",
+    "Save user-requested agent content as an editable card. Supply version 1 content, current source card citations and optional presentation. Content is agent supplied, not a live API response. Identical keys are idempotent. Use prepare_canvas_question before answering data questions.",
+    object(
+      {
+        content: contentSchema,
+        key: str,
+        width,
+        presentation,
+        expectedRevision: revision,
+      },
+      ["content"],
+    ),
+  ),
+  tool(
+    "update_content_block",
+    "Replace an existing content card with edited content or a cited answer to its question. Preserves its ID and connections. Validate current evidence with prepare_canvas_question and use expectedRevision.",
+    object({ ...target, content: contentSchema, presentation }, [
+      "blockId",
+      "content",
+    ]),
+  ),
+  tool(
+    "prepare_canvas_question",
+    "Read bounded evidence from the full page or specified cards for a question. Returns filters, visible data, raw data, freshness, issues and an answer contract. The calling agent writes the answer; this tool does not run an LLM or invent an answer.",
+    object(
+      {
+        question: { type: "string", minLength: 1, maxLength: 2000 },
+        questionBlockId: str,
+        blockIds,
+        limit: { type: "integer", minimum: 1, maximum: 100 },
+      },
+      [],
+    ),
+    true,
+  ),
+  tool(
+    "answer_canvas_question",
+    "Create one to six ordinary answer, table, chart or other content blocks linked to a saved question. Call prepare_canvas_question with questionBlockId first. Supply its expectedRevision and current scoped citations. Validates all outputs before adding any. Repeat identical outputs safely; edit returned blocks with the normal tools or UI.",
+    answerBundleSchema,
+  ),
+  tool(
+    "summarize_canvas",
+    "Add an editable, cited summary of supplied record counts, numeric ranges and source errors for the page or specified cards. This is a deterministic overview, not an LLM interpretation or forecast.",
+    object({ blockIds, expectedRevision: revision }),
+  ),
   tool(
     "discover_data_sources",
     "Discover sources by topic through the current catalog and APIs.guru, or inspect up to five public URLs. Returns ranked candidates, access status and reasons. This is bounded discovery, not unrestricted web crawling.",
@@ -206,7 +278,7 @@ export const workspaceContracts = [
   ),
   tool(
     "create_block",
-    "Create a card from a registered source. Use inspect_source and add_source for a new endpoint. Live non-GET requests must be sent from the visible editor. Identical keys produce the same ID.",
+    "Create a card from a registered source. Set waitForData:false to return its ID immediately, then read list_blocks while independent cards load. Inspect outcome for errors, empty or partial data; retry failed blocks with refresh_widget, not create_block. Live non-GET requests require the editor. Identical keys produce the same ID.",
     object(
       {
         sourceId: str,
@@ -220,6 +292,7 @@ export const workspaceContracts = [
           },
         },
         mode: { enum: ["live", "sample"] },
+        waitForData: { type: "boolean", default: true },
         title: str,
         presentation,
         width,
@@ -262,7 +335,7 @@ export const workspaceContracts = [
   ),
   tool(
     "resize_block",
-    "Set a block width in the 12-column desktop layout. Mobile layout stacks cards.",
+    "Set a block's preferred width in the 12-column desktop layout. Cards grow to fill unused row space. Mobile layout stacks cards.",
     object({ ...target, width }, ["blockId", "width"]),
   ),
   tool(
@@ -290,24 +363,56 @@ export function checkedOutput(
   data: unknown,
   error?: unknown,
 ) {
-  const output = error
+  const value = data as any;
+  const domainError = error ? normalizeError(error) : value?.error;
+  const failure =
+    domainError && typeof domainError.message === "string"
+      ? recoveryFor(domainError)
+      : undefined;
+  const state = value?.outcome?.status ?? value?.status;
+  const status =
+    error || failure
+      ? "error"
+      : [
+            "partial",
+            "loading",
+            "empty",
+            "blocked",
+            "needs-input",
+            "awaiting-review",
+            "awaiting-confirmation",
+          ].includes(state)
+        ? state
+        : state === "refreshing" || state === "draft"
+          ? "loading"
+          : "complete";
+  const output = failure
     ? {
         ok: false,
+        status,
         action,
         revision: store.revision,
-        warnings: [],
+        warnings: value?.warnings ?? [],
+        data: data ?? null,
         error: {
-          code: "REQUEST_FAILED",
-          message: error instanceof Error ? error.message : String(error),
-          recovery:
-            "Read the workspace and source schema, correct the indicated input, then retry.",
+          code: failure.code,
+          message: failure.message,
+          recovery: failure.recovery,
+          retryable: failure.retryable,
+          ...(failure.retryAfter !== undefined
+            ? { retryAfter: failure.retryAfter }
+            : {}),
         },
       }
     : {
         ok: true,
+        status,
         action,
         revision: store.revision,
-        warnings: [],
+        warnings: [
+          ...(value?.warnings ?? []),
+          ...(value?.outcome?.issues ?? []).map((issue: any) => issue.message),
+        ],
         data: data ?? null,
       };
   if (!validateOutput(output))
@@ -322,6 +427,103 @@ export async function runWorkspaceTool(
 ) {
   const editor = useEditor();
   switch (name) {
+    case "get_content_spec":
+      return {
+        schema: contentSchema,
+        supportedViews: presentations,
+        presentationSchema: presentation,
+        answerBundleSchema,
+        rules: [
+          "Use public HTTPS media and file URLs, not iframe HTML.",
+          "File cards accept files[] references and optional presentation.props.style. Use existing local IDs only after a human selects files. A local URI is a hint, not read permission. Choose or reconnect files in Edit content. Device paths and attachment contents are excluded from shared snapshots.",
+          "Data and search results must be supplied, never invented as fetched results.",
+          "Cite blockId with path and origin for exact fields. Source changes flag saved answers for review.",
+        ],
+        examples: [
+          {
+            version: 1,
+            kind: "file",
+            title: "Local file reference",
+            files: [
+              {
+                id: "local-example",
+                name: "data.csv",
+                access: "reference",
+                uri: "file:///path/to/data.csv",
+              },
+            ],
+          },
+          {
+            version: 1,
+            kind: "note",
+            title: "Research note",
+            body: "Write the note here.",
+          },
+          {
+            version: 1,
+            kind: "embed",
+            title: "Video",
+            url: "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+          },
+          {
+            version: 1,
+            kind: "dataset",
+            title: "Illustrative OHLC schema, not market data",
+            records: [
+              {
+                time: "2025-01-02",
+                symbol: "DEMO",
+                open: 10,
+                high: 12,
+                low: 9,
+                close: 11,
+                volume: 100,
+              },
+            ],
+          },
+          {
+            version: 1,
+            kind: "file",
+            title: "Notes file",
+            file: {
+              name: "notes.md",
+              format: "md",
+              text: "Supplied file text",
+            },
+          },
+        ],
+      };
+    case "create_content_block":
+      return store.createContent(a.content, "agent", {
+        key: a.key,
+        width: a.width,
+        presentation: a.presentation,
+      });
+    case "update_content_block":
+      return store.createContent(a.content, "agent", {
+        blockId: a.blockId,
+        presentation: a.presentation,
+      });
+    case "prepare_canvas_question":
+      if (
+        a.questionBlockId &&
+        (a.question !== undefined || a.blockIds !== undefined)
+      )
+        throw new Error(
+          "Supply questionBlockId alone to use its saved question and scope, or question with optional blockIds.",
+        );
+      if (!a.questionBlockId && !a.question)
+        throw new Error("Supply a question or a saved questionBlockId.");
+      return a.questionBlockId
+        ? prepareSavedQuestion(store, a.questionBlockId, a.limit)
+        : prepareQuestion(store, a.question, a.blockIds, a.limit);
+    case "answer_canvas_question":
+      return answerQuestion(store, a);
+    case "summarize_canvas":
+      return store.createContent(
+        summarizeCanvas(store, a.blockIds),
+        "computed",
+      );
     case "discover_data_sources":
       return discoverSources(a.query, a, signal);
     case "inspect_source":
@@ -387,7 +589,11 @@ export async function runWorkspaceTool(
         throw new Error(
           "Send live non-GET requests from the visible editor after confirmation.",
         );
-      const { expectedRevision: _revision, ...identity } = a;
+      const {
+        expectedRevision: _revision,
+        waitForData: _wait,
+        ...identity
+      } = a;
       const id = stableId("block", { dashboard: store.id, ...identity });
       const existing = store.widgets.find((w) => w.id === id);
       if (existing) return store.inspectWidget(id);
@@ -403,6 +609,7 @@ export async function runWorkspaceTool(
         },
         signal,
         id,
+        a.waitForData !== false,
       );
       await store.updateWidget(
         id,

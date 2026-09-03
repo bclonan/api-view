@@ -1,0 +1,2751 @@
+{
+  "status": "partial",
+  "availability": {
+    "pendingBlockIds": [],
+    "attentionBlockIds": [
+      "block-d18036ce3d9e92d0"
+    ],
+    "usableBlockIds": [
+      "block-dc03ed62d2e1addd",
+      "block-0f4687aedaba1fb4"
+    ],
+    "guidance": "Inspect per-block outcomes. Retry failed sources individually; independent cards can continue."
+  },
+  "id": "c13425cf-148f-4bb9-af2c-26773e281c6f",
+  "title": "Baltimore sports and places",
+  "revision": 14,
+  "mode": "sample",
+  "widgets": [
+    {
+      "id": "block-dc03ed62d2e1addd",
+      "title": "MLB Orioles schedule",
+      "apiId": "custom-release-orioles",
+      "operationId": "request",
+      "arguments": {},
+      "mode": "live",
+      "presentation": {
+        "type": "auto"
+      },
+      "width": 6,
+      "status": "ready",
+      "outcome": {
+        "status": "ready",
+        "blockId": "block-dc03ed62d2e1addd",
+        "recordCount": 1,
+        "visualization": "sports-score",
+        "stale": false,
+        "issues": [],
+        "next": null
+      },
+      "envelopeId": "data-9eb1c132f27cf213",
+      "missingInputs": [],
+      "fields": [
+        {
+          "key": "url",
+          "path": "url",
+          "label": "Url",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field url",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1.1/game/824312/feed/live"
+        },
+        {
+          "key": "time",
+          "path": "time",
+          "label": "Time",
+          "type": "datetime",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "timestamp",
+          "evidence": [
+            "1 nonempty samples",
+            "Field time",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02T19:10:00Z"
+        },
+        {
+          "key": "home_team",
+          "path": "home_team",
+          "label": "Home team",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field home_team",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Colorado Rockies"
+        },
+        {
+          "key": "away_team",
+          "path": "away_team",
+          "label": "Away team",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field away_team",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore Orioles"
+        },
+        {
+          "key": "home_score",
+          "path": "home_score",
+          "label": "Home score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field home_score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6
+        },
+        {
+          "key": "away_score",
+          "path": "away_score",
+          "label": "Away score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field away_score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 5
+        },
+        {
+          "key": "status_label",
+          "path": "status_label",
+          "label": "Status label",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status_label",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "venue.id",
+          "path": "venue.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 19
+        },
+        {
+          "key": "venue.name",
+          "path": "venue.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Coors Field"
+        },
+        {
+          "key": "venue.link",
+          "path": "venue.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/venues/19"
+        },
+        {
+          "key": "season_label",
+          "path": "season_label",
+          "label": "Season label",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field season_label",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "gamePk",
+          "path": "gamePk",
+          "label": "Game Pk",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamePk",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 824312
+        },
+        {
+          "key": "gameGuid",
+          "path": "gameGuid",
+          "label": "Game Guid",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameGuid",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "06b31b60-8aad-487b-9d77-9a388ba9b64f"
+        },
+        {
+          "key": "link",
+          "path": "link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1.1/game/824312/feed/live"
+        },
+        {
+          "key": "gameType",
+          "path": "gameType",
+          "label": "Game Type",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameType",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "R"
+        },
+        {
+          "key": "season",
+          "path": "season",
+          "label": "Season",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field season",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "gameDate",
+          "path": "gameDate",
+          "label": "Game Date",
+          "type": "datetime",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "timestamp",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameDate",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02T19:10:00Z"
+        },
+        {
+          "key": "officialDate",
+          "path": "officialDate",
+          "label": "Official Date",
+          "type": "date",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "date",
+          "evidence": [
+            "1 nonempty samples",
+            "Field officialDate",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02"
+        },
+        {
+          "key": "status.abstractGameState",
+          "path": "status.abstractGameState",
+          "label": "Abstract Game State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.abstractGameState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "status.codedGameState",
+          "path": "status.codedGameState",
+          "label": "Coded Game State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.codedGameState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "status.detailedState",
+          "path": "status.detailedState",
+          "label": "Detailed State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.detailedState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "status.statusCode",
+          "path": "status.statusCode",
+          "label": "Status Code",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.statusCode",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "status.startTimeTBD",
+          "path": "status.startTimeTBD",
+          "label": "Start Time TBD",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.startTimeTBD",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "status.abstractGameCode",
+          "path": "status.abstractGameCode",
+          "label": "Abstract Game Code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.abstractGameCode",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "teams.away.team.id",
+          "path": "teams.away.team.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 110
+        },
+        {
+          "key": "teams.away.team.name",
+          "path": "teams.away.team.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore Orioles"
+        },
+        {
+          "key": "teams.away.team.link",
+          "path": "teams.away.team.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/teams/110"
+        },
+        {
+          "key": "teams.away.leagueRecord.wins",
+          "path": "teams.away.leagueRecord.wins",
+          "label": "Wins",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.wins",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 69
+        },
+        {
+          "key": "teams.away.leagueRecord.losses",
+          "path": "teams.away.leagueRecord.losses",
+          "label": "Losses",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.losses",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 71
+        },
+        {
+          "key": "teams.away.leagueRecord.ties",
+          "path": "teams.away.leagueRecord.ties",
+          "label": "Ties",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.ties",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 0
+        },
+        {
+          "key": "teams.away.leagueRecord.pct",
+          "path": "teams.away.leagueRecord.pct",
+          "label": "Pct",
+          "type": "percent",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "percent",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.pct",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": ".493"
+        },
+        {
+          "key": "teams.away.score",
+          "path": "teams.away.score",
+          "label": "Score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 5
+        },
+        {
+          "key": "teams.away.isWinner",
+          "path": "teams.away.isWinner",
+          "label": "Is Winner",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.isWinner",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.away.splitSquad",
+          "path": "teams.away.splitSquad",
+          "label": "Split Squad",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.splitSquad",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.away.seriesNumber",
+          "path": "teams.away.seriesNumber",
+          "label": "Series Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.seriesNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 45
+        },
+        {
+          "key": "teams.home.team.id",
+          "path": "teams.home.team.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 115
+        },
+        {
+          "key": "teams.home.team.name",
+          "path": "teams.home.team.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Colorado Rockies"
+        },
+        {
+          "key": "teams.home.team.link",
+          "path": "teams.home.team.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/teams/115"
+        },
+        {
+          "key": "teams.home.leagueRecord.wins",
+          "path": "teams.home.leagueRecord.wins",
+          "label": "Wins",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.wins",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 54
+        },
+        {
+          "key": "teams.home.leagueRecord.losses",
+          "path": "teams.home.leagueRecord.losses",
+          "label": "Losses",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.losses",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 86
+        },
+        {
+          "key": "teams.home.leagueRecord.ties",
+          "path": "teams.home.leagueRecord.ties",
+          "label": "Ties",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.ties",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 0
+        },
+        {
+          "key": "teams.home.leagueRecord.pct",
+          "path": "teams.home.leagueRecord.pct",
+          "label": "Pct",
+          "type": "percent",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "percent",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.pct",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": ".386"
+        },
+        {
+          "key": "teams.home.score",
+          "path": "teams.home.score",
+          "label": "Score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6
+        },
+        {
+          "key": "teams.home.isWinner",
+          "path": "teams.home.isWinner",
+          "label": "Is Winner",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.isWinner",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": true
+        },
+        {
+          "key": "teams.home.splitSquad",
+          "path": "teams.home.splitSquad",
+          "label": "Split Squad",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.splitSquad",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.home.seriesNumber",
+          "path": "teams.home.seriesNumber",
+          "label": "Series Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.seriesNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 45
+        },
+        {
+          "key": "content.link",
+          "path": "content.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field content.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/game/824312/content"
+        },
+        {
+          "key": "isTie",
+          "path": "isTie",
+          "label": "Is Tie",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field isTie",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "gameNumber",
+          "path": "gameNumber",
+          "label": "Game Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 1
+        },
+        {
+          "key": "publicFacing",
+          "path": "publicFacing",
+          "label": "Public Facing",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field publicFacing",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": true
+        },
+        {
+          "key": "doubleHeader",
+          "path": "doubleHeader",
+          "label": "Double Header",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field doubleHeader",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "gamedayType",
+          "path": "gamedayType",
+          "label": "Gameday Type",
+          "type": "duration",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "duration",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamedayType",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "P"
+        },
+        {
+          "key": "tiebreaker",
+          "path": "tiebreaker",
+          "label": "Tiebreaker",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field tiebreaker",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "calendarEventID",
+          "path": "calendarEventID",
+          "label": "Calendar Event ID",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field calendarEventID",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "14-824312-2026-09-02"
+        },
+        {
+          "key": "seasonDisplay",
+          "path": "seasonDisplay",
+          "label": "Season Display",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seasonDisplay",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "dayNight",
+          "path": "dayNight",
+          "label": "Day Night",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field dayNight",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "day"
+        },
+        {
+          "key": "scheduledInnings",
+          "path": "scheduledInnings",
+          "label": "Scheduled Innings",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field scheduledInnings",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 9
+        },
+        {
+          "key": "reverseHomeAwayStatus",
+          "path": "reverseHomeAwayStatus",
+          "label": "Reverse Home Away Status",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field reverseHomeAwayStatus",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "inningBreakLength",
+          "path": "inningBreakLength",
+          "label": "Inning Break Length",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field inningBreakLength",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 120
+        },
+        {
+          "key": "gamesInSeries",
+          "path": "gamesInSeries",
+          "label": "Games In Series",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamesInSeries",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 3
+        },
+        {
+          "key": "seriesGameNumber",
+          "path": "seriesGameNumber",
+          "label": "Series Game Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seriesGameNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 3
+        },
+        {
+          "key": "seriesDescription",
+          "path": "seriesDescription",
+          "label": "Series Description",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seriesDescription",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Regular Season"
+        },
+        {
+          "key": "recordSource",
+          "path": "recordSource",
+          "label": "Record Source",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field recordSource",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "S"
+        },
+        {
+          "key": "ifNecessary",
+          "path": "ifNecessary",
+          "label": "If Necessary",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field ifNecessary",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "ifNecessaryDescription",
+          "path": "ifNecessaryDescription",
+          "label": "If Necessary Description",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field ifNecessaryDescription",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Normal Game"
+        }
+      ],
+      "displayFields": [
+        {
+          "key": "url",
+          "path": "url",
+          "label": "Url",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field url",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1.1/game/824312/feed/live"
+        },
+        {
+          "key": "time",
+          "path": "time",
+          "label": "Time",
+          "type": "datetime",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "timestamp",
+          "evidence": [
+            "1 nonempty samples",
+            "Field time",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02T19:10:00Z"
+        },
+        {
+          "key": "home_team",
+          "path": "home_team",
+          "label": "Home team",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field home_team",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Colorado Rockies"
+        },
+        {
+          "key": "away_team",
+          "path": "away_team",
+          "label": "Away team",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field away_team",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore Orioles"
+        },
+        {
+          "key": "home_score",
+          "path": "home_score",
+          "label": "Home score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field home_score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6
+        },
+        {
+          "key": "away_score",
+          "path": "away_score",
+          "label": "Away score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field away_score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 5
+        },
+        {
+          "key": "status_label",
+          "path": "status_label",
+          "label": "Status label",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status_label",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "venue.id",
+          "path": "venue.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 19
+        },
+        {
+          "key": "venue.name",
+          "path": "venue.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Coors Field"
+        },
+        {
+          "key": "venue.link",
+          "path": "venue.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field venue.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/venues/19"
+        },
+        {
+          "key": "season_label",
+          "path": "season_label",
+          "label": "Season label",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field season_label",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "gamePk",
+          "path": "gamePk",
+          "label": "Game Pk",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamePk",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 824312
+        },
+        {
+          "key": "gameGuid",
+          "path": "gameGuid",
+          "label": "Game Guid",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameGuid",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "06b31b60-8aad-487b-9d77-9a388ba9b64f"
+        },
+        {
+          "key": "link",
+          "path": "link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1.1/game/824312/feed/live"
+        },
+        {
+          "key": "gameType",
+          "path": "gameType",
+          "label": "Game Type",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameType",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "R"
+        },
+        {
+          "key": "season",
+          "path": "season",
+          "label": "Season",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field season",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "gameDate",
+          "path": "gameDate",
+          "label": "Game Date",
+          "type": "datetime",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "timestamp",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameDate",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02T19:10:00Z"
+        },
+        {
+          "key": "officialDate",
+          "path": "officialDate",
+          "label": "Official Date",
+          "type": "date",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "date",
+          "evidence": [
+            "1 nonempty samples",
+            "Field officialDate",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026-09-02"
+        },
+        {
+          "key": "status.abstractGameState",
+          "path": "status.abstractGameState",
+          "label": "Abstract Game State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.abstractGameState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "status.codedGameState",
+          "path": "status.codedGameState",
+          "label": "Coded Game State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.codedGameState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "status.detailedState",
+          "path": "status.detailedState",
+          "label": "Detailed State",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.detailedState",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Final"
+        },
+        {
+          "key": "status.statusCode",
+          "path": "status.statusCode",
+          "label": "Status Code",
+          "type": "category",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "category",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.statusCode",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "status.startTimeTBD",
+          "path": "status.startTimeTBD",
+          "label": "Start Time TBD",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.startTimeTBD",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "status.abstractGameCode",
+          "path": "status.abstractGameCode",
+          "label": "Abstract Game Code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field status.abstractGameCode",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "F"
+        },
+        {
+          "key": "teams.away.team.id",
+          "path": "teams.away.team.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 110
+        },
+        {
+          "key": "teams.away.team.name",
+          "path": "teams.away.team.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore Orioles"
+        },
+        {
+          "key": "teams.away.team.link",
+          "path": "teams.away.team.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.team.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/teams/110"
+        },
+        {
+          "key": "teams.away.leagueRecord.wins",
+          "path": "teams.away.leagueRecord.wins",
+          "label": "Wins",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.wins",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 69
+        },
+        {
+          "key": "teams.away.leagueRecord.losses",
+          "path": "teams.away.leagueRecord.losses",
+          "label": "Losses",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.losses",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 71
+        },
+        {
+          "key": "teams.away.leagueRecord.ties",
+          "path": "teams.away.leagueRecord.ties",
+          "label": "Ties",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.ties",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 0
+        },
+        {
+          "key": "teams.away.leagueRecord.pct",
+          "path": "teams.away.leagueRecord.pct",
+          "label": "Pct",
+          "type": "percent",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "percent",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.leagueRecord.pct",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": ".493"
+        },
+        {
+          "key": "teams.away.score",
+          "path": "teams.away.score",
+          "label": "Score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 5
+        },
+        {
+          "key": "teams.away.isWinner",
+          "path": "teams.away.isWinner",
+          "label": "Is Winner",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.isWinner",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.away.splitSquad",
+          "path": "teams.away.splitSquad",
+          "label": "Split Squad",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.splitSquad",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.away.seriesNumber",
+          "path": "teams.away.seriesNumber",
+          "label": "Series Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.away.seriesNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 45
+        },
+        {
+          "key": "teams.home.team.id",
+          "path": "teams.home.team.id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 115
+        },
+        {
+          "key": "teams.home.team.name",
+          "path": "teams.home.team.name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Colorado Rockies"
+        },
+        {
+          "key": "teams.home.team.link",
+          "path": "teams.home.team.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.team.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/teams/115"
+        },
+        {
+          "key": "teams.home.leagueRecord.wins",
+          "path": "teams.home.leagueRecord.wins",
+          "label": "Wins",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.wins",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 54
+        },
+        {
+          "key": "teams.home.leagueRecord.losses",
+          "path": "teams.home.leagueRecord.losses",
+          "label": "Losses",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.losses",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 86
+        },
+        {
+          "key": "teams.home.leagueRecord.ties",
+          "path": "teams.home.leagueRecord.ties",
+          "label": "Ties",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.ties",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 0
+        },
+        {
+          "key": "teams.home.leagueRecord.pct",
+          "path": "teams.home.leagueRecord.pct",
+          "label": "Pct",
+          "type": "percent",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "percent",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.leagueRecord.pct",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": ".386"
+        },
+        {
+          "key": "teams.home.score",
+          "path": "teams.home.score",
+          "label": "Score",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.score",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6
+        },
+        {
+          "key": "teams.home.isWinner",
+          "path": "teams.home.isWinner",
+          "label": "Is Winner",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.isWinner",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": true
+        },
+        {
+          "key": "teams.home.splitSquad",
+          "path": "teams.home.splitSquad",
+          "label": "Split Squad",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.splitSquad",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "teams.home.seriesNumber",
+          "path": "teams.home.seriesNumber",
+          "label": "Series Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field teams.home.seriesNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 45
+        },
+        {
+          "key": "content.link",
+          "path": "content.link",
+          "label": "Link",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field content.link",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "/api/v1/game/824312/content"
+        },
+        {
+          "key": "isTie",
+          "path": "isTie",
+          "label": "Is Tie",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field isTie",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "gameNumber",
+          "path": "gameNumber",
+          "label": "Game Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gameNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 1
+        },
+        {
+          "key": "publicFacing",
+          "path": "publicFacing",
+          "label": "Public Facing",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field publicFacing",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": true
+        },
+        {
+          "key": "doubleHeader",
+          "path": "doubleHeader",
+          "label": "Double Header",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field doubleHeader",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "gamedayType",
+          "path": "gamedayType",
+          "label": "Gameday Type",
+          "type": "duration",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "duration",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamedayType",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "P"
+        },
+        {
+          "key": "tiebreaker",
+          "path": "tiebreaker",
+          "label": "Tiebreaker",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field tiebreaker",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "calendarEventID",
+          "path": "calendarEventID",
+          "label": "Calendar Event ID",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field calendarEventID",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "14-824312-2026-09-02"
+        },
+        {
+          "key": "seasonDisplay",
+          "path": "seasonDisplay",
+          "label": "Season Display",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "year",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seasonDisplay",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "2026"
+        },
+        {
+          "key": "dayNight",
+          "path": "dayNight",
+          "label": "Day Night",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field dayNight",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "day"
+        },
+        {
+          "key": "scheduledInnings",
+          "path": "scheduledInnings",
+          "label": "Scheduled Innings",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field scheduledInnings",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 9
+        },
+        {
+          "key": "reverseHomeAwayStatus",
+          "path": "reverseHomeAwayStatus",
+          "label": "Reverse Home Away Status",
+          "type": "boolean",
+          "confidence": 1,
+          "primitiveType": "boolean",
+          "semanticType": "boolean",
+          "evidence": [
+            "1 nonempty samples",
+            "Field reverseHomeAwayStatus",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": false
+        },
+        {
+          "key": "inningBreakLength",
+          "path": "inningBreakLength",
+          "label": "Inning Break Length",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field inningBreakLength",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 120
+        },
+        {
+          "key": "gamesInSeries",
+          "path": "gamesInSeries",
+          "label": "Games In Series",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field gamesInSeries",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 3
+        },
+        {
+          "key": "seriesGameNumber",
+          "path": "seriesGameNumber",
+          "label": "Series Game Number",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "integer",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seriesGameNumber",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 3
+        },
+        {
+          "key": "seriesDescription",
+          "path": "seriesDescription",
+          "label": "Series Description",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field seriesDescription",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Regular Season"
+        },
+        {
+          "key": "recordSource",
+          "path": "recordSource",
+          "label": "Record Source",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field recordSource",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "S"
+        },
+        {
+          "key": "ifNecessary",
+          "path": "ifNecessary",
+          "label": "If Necessary",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field ifNecessary",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "N"
+        },
+        {
+          "key": "ifNecessaryDescription",
+          "path": "ifNecessaryDescription",
+          "label": "If Necessary Description",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "description",
+          "evidence": [
+            "1 nonempty samples",
+            "Field ifNecessaryDescription",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Normal Game"
+        }
+      ],
+      "bindingIssues": [],
+      "shape": "timeseries",
+      "lastUpdated": "2026-09-03T00:48:02.425Z"
+    },
+    {
+      "id": "block-0f4687aedaba1fb4",
+      "title": "Baltimore location",
+      "apiId": "custom-release-baltimore",
+      "operationId": "request",
+      "arguments": {},
+      "mode": "live",
+      "presentation": {
+        "type": "auto"
+      },
+      "width": 6,
+      "status": "ready",
+      "outcome": {
+        "status": "ready",
+        "blockId": "block-0f4687aedaba1fb4",
+        "recordCount": 1,
+        "visualization": "map",
+        "stale": false,
+        "issues": [],
+        "next": null
+      },
+      "envelopeId": "data-35562d940d17a5d0",
+      "missingInputs": [],
+      "fields": [
+        {
+          "key": "title",
+          "path": "title",
+          "label": "Title",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field title",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        },
+        {
+          "key": "latitude",
+          "path": "latitude",
+          "label": "Latitude",
+          "type": "latitude",
+          "confidence": 1,
+          "primitiveType": "number",
+          "semanticType": "latitude",
+          "evidence": [
+            "1 nonempty samples",
+            "Field latitude",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 39.29038
+        },
+        {
+          "key": "longitude",
+          "path": "longitude",
+          "label": "Longitude",
+          "type": "longitude",
+          "confidence": 1,
+          "primitiveType": "number",
+          "semanticType": "longitude",
+          "evidence": [
+            "1 nonempty samples",
+            "Field longitude",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": -76.61219
+        },
+        {
+          "key": "id",
+          "path": "id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4347778
+        },
+        {
+          "key": "name",
+          "path": "name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        },
+        {
+          "key": "elevation",
+          "path": "elevation",
+          "label": "Elevation",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "distance",
+          "evidence": [
+            "1 nonempty samples",
+            "Field elevation",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 10
+        },
+        {
+          "key": "feature_code",
+          "path": "feature_code",
+          "label": "Feature code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field feature_code",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "PPLA2"
+        },
+        {
+          "key": "country_code",
+          "path": "country_code",
+          "label": "Country code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "country",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country_code",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "US"
+        },
+        {
+          "key": "admin1_id",
+          "path": "admin1_id",
+          "label": "Admin1 id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin1_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4361885
+        },
+        {
+          "key": "admin2_id",
+          "path": "admin2_id",
+          "label": "Admin2 id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin2_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4347820
+        },
+        {
+          "key": "timezone",
+          "path": "timezone",
+          "label": "Timezone",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field timezone",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "America/New_York"
+        },
+        {
+          "key": "population",
+          "path": "population",
+          "label": "Population",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field population",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 585708
+        },
+        {
+          "key": "postcodes",
+          "path": "postcodes",
+          "label": "Postcodes",
+          "type": "array",
+          "confidence": 1,
+          "primitiveType": "array",
+          "semanticType": "array",
+          "evidence": [
+            "1 nonempty samples",
+            "Field postcodes",
+            "100% type agreement"
+          ],
+          "nullable": false
+        },
+        {
+          "key": "country_id",
+          "path": "country_id",
+          "label": "Country id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6252001
+        },
+        {
+          "key": "country",
+          "path": "country",
+          "label": "Country",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "country",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "United States"
+        },
+        {
+          "key": "admin1",
+          "path": "admin1",
+          "label": "Admin1",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin1",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Maryland"
+        },
+        {
+          "key": "admin2",
+          "path": "admin2",
+          "label": "Admin2",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin2",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        }
+      ],
+      "displayFields": [
+        {
+          "key": "title",
+          "path": "title",
+          "label": "Title",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field title",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        },
+        {
+          "key": "latitude",
+          "path": "latitude",
+          "label": "Latitude",
+          "type": "latitude",
+          "confidence": 1,
+          "primitiveType": "number",
+          "semanticType": "latitude",
+          "evidence": [
+            "1 nonempty samples",
+            "Field latitude",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 39.29038
+        },
+        {
+          "key": "longitude",
+          "path": "longitude",
+          "label": "Longitude",
+          "type": "longitude",
+          "confidence": 1,
+          "primitiveType": "number",
+          "semanticType": "longitude",
+          "evidence": [
+            "1 nonempty samples",
+            "Field longitude",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": -76.61219
+        },
+        {
+          "key": "id",
+          "path": "id",
+          "label": "Id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4347778
+        },
+        {
+          "key": "name",
+          "path": "name",
+          "label": "Name",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "title",
+          "evidence": [
+            "1 nonempty samples",
+            "Field name",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        },
+        {
+          "key": "elevation",
+          "path": "elevation",
+          "label": "Elevation",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "distance",
+          "evidence": [
+            "1 nonempty samples",
+            "Field elevation",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 10
+        },
+        {
+          "key": "feature_code",
+          "path": "feature_code",
+          "label": "Feature code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field feature_code",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "PPLA2"
+        },
+        {
+          "key": "country_code",
+          "path": "country_code",
+          "label": "Country code",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "country",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country_code",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "US"
+        },
+        {
+          "key": "admin1_id",
+          "path": "admin1_id",
+          "label": "Admin1 id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin1_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4361885
+        },
+        {
+          "key": "admin2_id",
+          "path": "admin2_id",
+          "label": "Admin2 id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin2_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 4347820
+        },
+        {
+          "key": "timezone",
+          "path": "timezone",
+          "label": "Timezone",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field timezone",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "America/New_York"
+        },
+        {
+          "key": "population",
+          "path": "population",
+          "label": "Population",
+          "type": "integer",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "quantity",
+          "evidence": [
+            "1 nonempty samples",
+            "Field population",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 585708
+        },
+        {
+          "key": "postcodes",
+          "path": "postcodes",
+          "label": "Postcodes",
+          "type": "array",
+          "confidence": 1,
+          "primitiveType": "array",
+          "semanticType": "array",
+          "evidence": [
+            "1 nonempty samples",
+            "Field postcodes",
+            "100% type agreement"
+          ],
+          "nullable": false
+        },
+        {
+          "key": "country_id",
+          "path": "country_id",
+          "label": "Country id",
+          "type": "identifier",
+          "confidence": 1,
+          "primitiveType": "integer",
+          "semanticType": "identifier",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country_id",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": 6252001
+        },
+        {
+          "key": "country",
+          "path": "country",
+          "label": "Country",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "country",
+          "evidence": [
+            "1 nonempty samples",
+            "Field country",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "United States"
+        },
+        {
+          "key": "admin1",
+          "path": "admin1",
+          "label": "Admin1",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin1",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Maryland"
+        },
+        {
+          "key": "admin2",
+          "path": "admin2",
+          "label": "Admin2",
+          "type": "text",
+          "confidence": 1,
+          "primitiveType": "string",
+          "semanticType": "text",
+          "evidence": [
+            "1 nonempty samples",
+            "Field admin2",
+            "100% type agreement"
+          ],
+          "nullable": false,
+          "sample": "Baltimore"
+        }
+      ],
+      "bindingIssues": [],
+      "shape": "geo",
+      "lastUpdated": "2026-09-03T00:48:02.844Z"
+    },
+    {
+      "id": "block-d18036ce3d9e92d0",
+      "title": "ESPN Ravens team",
+      "apiId": "custom-release-ravens",
+      "operationId": "request",
+      "arguments": {},
+      "mode": "live",
+      "presentation": {
+        "type": "auto"
+      },
+      "width": 6,
+      "status": "error",
+      "outcome": {
+        "status": "error",
+        "blockId": "block-d18036ce3d9e92d0",
+        "recordCount": 0,
+        "visualization": null,
+        "stale": false,
+        "issues": [
+          {
+            "code": "network",
+            "title": "Browser request unavailable",
+            "message": "The network request failed. The source may be offline or may not allow browser access. Check your connection, retry, or choose sample data.",
+            "retryable": true,
+            "recovery": "Retry once. If browser access still fails, use a documented CORS-enabled endpoint or an approved adapter. Repeating the same blocked request will not fix CORS."
+          }
+        ],
+        "next": null
+      },
+      "missingInputs": [],
+      "bindingIssues": [],
+      "error": {
+        "code": "network",
+        "title": "Browser request unavailable",
+        "message": "The network request failed. The source may be offline or may not allow browser access. Check your connection, retry, or choose sample data."
+      }
+    }
+  ],
+  "dashboards": [
+    {
+      "id": "c13425cf-148f-4bb9-af2c-26773e281c6f",
+      "title": "Baltimore sports and places",
+      "widgetCount": 3,
+      "updatedAt": "2026-09-03T00:48:02.844Z"
+    }
+  ],
+  "selectedIds": [],
+  "requests": []
+}

@@ -122,7 +122,11 @@ const categories = computed(() =>
         ><span
           ><strong>{{ api.name }}</strong
           ><small>{{
-            api.liveNotice ? "Sample only" : api.categories[0]
+            api.liveNotice
+              ? "Sample only"
+              : api.authentication === "api-key"
+                ? "API key required"
+                : api.categories[0]
           }}</small></span
         ><Plus :size="14" class="api-add" />
       </button>

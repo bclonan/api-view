@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { Row } from "../types";
+import { scenarioFor } from "../runtime/scenarios";
+import ScenarioBlock from "./ScenarioBlock.vue";
 const props = defineProps<{
   rows: Row[];
   latitude: string;
@@ -11,7 +13,9 @@ const points = computed(() =>
   props.rows.filter(
     (r) =>
       r[props.latitude] != null &&
+      String(r[props.latitude]).trim() !== "" &&
       r[props.longitude] != null &&
+      String(r[props.longitude]).trim() !== "" &&
       Number.isFinite(Number(r[props.latitude])) &&
       Math.abs(Number(r[props.latitude])) <= 90 &&
       Number.isFinite(Number(r[props.longitude])) &&
@@ -20,10 +24,34 @@ const points = computed(() =>
 );
 const current = computed(() => points.value[selected.value] ?? points.value[0]);
 const name = (r: Row) => String(r.place ?? r.name ?? r.title ?? "Location");
+const mapUrl = computed(() => {
+  if (!current.value) return undefined;
+  const lat = Number(current.value[props.latitude]),
+    lon = Number(current.value[props.longitude]);
+  const bbox = [
+    Math.max(-180, lon - 0.03),
+    Math.max(-90, lat - 0.02),
+    Math.min(180, lon + 0.03),
+    Math.min(90, lat + 0.02),
+  ].join(",");
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${lat},${lon}`;
+});
+const address = computed(() =>
+  current.value ? scenarioFor(current.value).values.address : undefined,
+);
 </script>
 <template>
   <div class="map-block">
+    <iframe
+      v-if="mapUrl"
+      :src="mapUrl"
+      :title="`Map of ${name(current!)}`"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      class="location-map"
+    />
     <svg
+      v-if="points.length > 1"
       viewBox="0 0 720 320"
       role="img"
       aria-label="Coordinate plot. Use the location list below for individual coordinates."
@@ -45,11 +73,6 @@ const name = (r: Row) => String(r.place ?? r.name ?? r.title ?? "Location");
       </defs>
       <rect width="720" height="320" fill="#f0f4ee" />
       <rect width="720" height="320" fill="url(#map-grid)" />
-      <path
-        d="M70 65l40-25 45 8 25 25 45 8-22 38-32 10-9 31-28-8-20-42-28-16z M176 159l39 10 18 40-17 68-22-24-11-44z M314 70l47-32 82 6 33 23 60-12 76 49-35 27-54-7-30 25-33-30-34 8-23-24-46 5-12-20z M335 130l50-6 30 37-15 55-32 15-29-53z M553 221l41-13 37 26-11 23-60-6z"
-        fill="#dbe5d7"
-        stroke="#c8d5c4"
-      />
       <text x="10" y="18" fill="#768472" font-size="10">90° N</text>
       <text x="10" y="310" fill="#768472" font-size="10">90° S</text>
       <g v-for="(r, i) in points" :key="i">
@@ -77,13 +100,32 @@ const name = (r: Row) => String(r.place ?? r.name ?? r.title ?? "Location");
         {{ Number(current[longitude]).toFixed(3) }}°</span
       >
     </div>
-    <select aria-label="Select a location" v-model="selected">
+    <p v-if="address">{{ address }}</p>
+    <select
+      v-if="points.length"
+      aria-label="Select a location"
+      v-model="selected"
+    >
       <option v-for="(r, i) in points" :key="i" :value="i">
         {{ name(r) }}
       </option>
     </select>
-    <p class="tiny muted">
-      Schematic world map · {{ points.length }} locations
+    <p v-if="points.length" class="tiny muted">
+      OpenStreetMap · {{ points.length }} mapped locations. The map needs an
+      internet connection; coordinates and links remain available.
     </p>
+    <p v-if="points.length < rows.length" role="status" class="notice">
+      {{ rows.length - points.length }} records have missing or invalid
+      coordinates. No location was guessed.
+    </p>
+    <ScenarioBlock v-if="!points.length" :rows="rows" kind="places" />
   </div>
 </template>
+<style scoped>
+.location-map {
+  width: 100%;
+  height: 280px;
+  border: 1px solid #dce3d7;
+  border-radius: 10px;
+}
+</style>

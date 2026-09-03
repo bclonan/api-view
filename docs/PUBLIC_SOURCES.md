@@ -1,5 +1,7 @@
 # Public sources and connected blocks
 
+The latest [scenario release](SCENARIO_BLOCKS.md) adds sports, places, news, events, people and product views, plus structured loading and failure outcomes for WebMCP.
+
 This release extends the existing Vue, Pinia, normalization and component architecture. Provider definitions and custom sources feed the same request history, cards and renderer. Existing dashboard storage stays in place.
 
 ## Use it
@@ -34,7 +36,7 @@ The discovery button beside the workspace breadcrumb persists its collapsed stat
 ## Supported scope and limits
 
 - Adapters cover JSON, CSV, XML, RSS, Atom, JSON-LD, HTML tables, embedded JSON, GraphQL, Socrata, CKAN and ArcGIS. OpenAPI and Swagger documents yield GET operation candidates. GraphQL queries remain explicit; introspection helps inspect available fields.
-- Arbitrary structured public sources need browser access. There is no server proxy, crawler, authentication bypass or execution of embedded scripts. Unstructured pages and tables with merged cells report an actionable error.
+- Arbitrary structured public sources need browser access. Unsplash alone uses a fixed Netlify function to keep its Access Key confidential. There is no general proxy, crawler, authentication bypass or execution of embedded scripts. Unstructured pages and tables with merged cells report an actionable error. See [image and open-data APIs](IMAGE_AND_OPEN_DATA_APIS.md) and the [full catalog audit](API_AUDIT.md).
 - Webpage reads check the permission flag, robots rules and applicable page metadata. Browser CORS restrictions can also prevent reading robots rules. A failure stays visible.
 - Source responses are bounded to 5 MB, 5,000 rows and five pages. The public API directory has a separate 12 MB metadata limit. GET refresh runs while the editor is visible. Live non-GET requests require the normal editor and do not replay automatically.
 - Joins require compatible key types and unique right-hand keys. Transforms are declarative and bounded. Units can be tagged; the app does not infer or perform unit conversions.

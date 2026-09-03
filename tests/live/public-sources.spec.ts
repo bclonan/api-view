@@ -34,7 +34,7 @@ test("real public API and permitted HTML remain connected in editor and share", 
   await expect(
     page.getByRole("button", { name: "Agent ready", exact: true }),
   ).toBeVisible();
-  expect(await page.evaluate(() => (window as any).releaseTools.size)).toBe(31);
+  expect(await page.evaluate(() => (window as any).releaseTools.size)).toBe(37);
   await page
     .getByLabel("Workspace title", { exact: true })
     .fill("Public source connections");

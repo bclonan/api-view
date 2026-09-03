@@ -29,6 +29,19 @@ export const presentations = [
   "document",
   "calendar",
   "graph",
+  "sports-score",
+  "sports-team",
+  "places",
+  "news",
+  "events",
+  "person",
+  "product",
+  "embed",
+  "video",
+  "audio",
+  "note",
+  "file",
+  "stock-chart",
 ] as const;
 export type PresentationType = (typeof presentations)[number];
 export type SemanticValueType =
@@ -133,7 +146,10 @@ export interface PresentationSpec {
     sortDirection?: "asc" | "desc";
     compact?: boolean;
     numberFormat?: "compact" | "standard";
+    stockStyle?: "candles" | "line";
+    stockSymbol?: string;
     showSource?: boolean;
+    style?: BlockStyle;
   };
 }
 export interface DataBinding {
@@ -277,6 +293,8 @@ export interface ApiDefinition {
   icon: string;
   authentication?: "none" | "api-key";
   liveNotice?: string;
+  keySetup?: { environmentVariable: string; url: string; message: string };
+  accessNote?: string;
   operations: Operation[];
   browser?: { expectedCors: "yes" | "no" | "unknown" };
   attribution?: string;
@@ -288,6 +306,8 @@ export interface NormalizedError {
   retryAfter?: number;
 }
 export interface WidgetInput {
+  content?: CanvasContent;
+  contentMeta?: ContentMeta;
   derived?: { sourceIds: string[] };
   apiId: string;
   operationId: string;
@@ -300,6 +320,9 @@ export interface WidgetInput {
   transforms?: DataTransform[];
 }
 export interface Widget {
+  content?: CanvasContent;
+  contentMeta?: ContentMeta;
+  viewError?: NormalizedError;
   derived?: { sourceIds: string[] };
   id: string;
   title: string;
@@ -323,4 +346,57 @@ export interface Widget {
   refreshedAt?: string;
   requestUrl?: string;
   durationMs?: number;
+}
+
+export interface CanvasContent {
+  version: 1;
+  kind:
+    | "note"
+    | "summary"
+    | "answer"
+    | "question"
+    | "search-results"
+    | "file"
+    | "dataset"
+    | "embed";
+  title: string;
+  body?: string;
+  question?: string;
+  url?: string;
+  mediaType?: "auto" | "video" | "audio" | "iframe";
+  records?: Row[];
+  file?: { name: string; format: "txt" | "md" | "json" | "csv"; text: string };
+  citations?: {
+    blockId?: string;
+    path?: string;
+    origin?: "raw" | "data";
+    url?: string;
+    label: string;
+  }[];
+  sourceIds?: string[];
+  files?: LocalFileReference[];
+  answerTo?: string;
+}
+export interface BlockStyle {
+  background?: string;
+  color?: string;
+  borderColor?: string;
+  fontSize?: number;
+  textAlign?: "left" | "center" | "right";
+}
+export interface LocalFileReference {
+  id: string;
+  name: string;
+  access: "snapshot" | "handle" | "reference";
+  uri?: string;
+  mediaType?: string;
+  size?: number;
+  lastModified?: number;
+  data?: unknown;
+  previewIssue?: string;
+}
+export interface ContentMeta {
+  origin: "user" | "agent" | "computed";
+  updatedAt: string;
+  evidence: Record<string, string>;
 }

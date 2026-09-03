@@ -915,18 +915,20 @@ button svg {
   margin-left: auto;
 }
 .workspace-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
   margin-top: 26px;
 }
 .widget {
-  grid-column: span var(--widget-span, 6);
+  flex: var(--widget-span, 6) 1 calc((100% + 20px) * var(--widget-span, 6) / 12 - 20px);
+  display: flex;
+  flex-direction: column;
   border: 1px solid #dfe5d8;
   background: #fff;
   border-radius: 10px;
-  min-width: 0;
+  min-width: min(100%, 280px);
   animation: appear 0.24s ease-out;
   overflow: visible;
 }
@@ -966,6 +968,61 @@ button svg {
 }
 .widget-header .icon-button {
   width: 24px;
+}
+.layout-hint {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.layout-hint ~ .workspace-grid {
+  margin-top: 12px;
+}
+.widget-header .reorder-handle {
+  cursor: grab;
+  min-height: 44px;
+  flex-shrink: 0;
+  user-select: none;
+  touch-action: none;
+}
+.reorder-handle svg {
+  pointer-events: none;
+}
+.reorder-handle:active {
+  cursor: grabbing;
+}
+.widget-dragging {
+  opacity: 0.55;
+}
+.drop-before {
+  box-shadow: -5px 0 0 #597b4c;
+  outline: 2px solid #597b4c;
+}
+.drop-after {
+  box-shadow: 5px 0 0 #597b4c;
+  outline: 2px solid #597b4c;
+}
+.reorder-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f2f5ed;
+}
+.reorder-controls label {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 90px;
+  font-size: 12px;
+}
+.reorder-controls select,
+.reorder-controls .button,
+.reorder-controls .icon-button {
+  min-height: 44px;
+}
+.reorder-controls .icon-button {
+  min-width: 44px;
 }
 .menu-anchor {
   position: relative;
@@ -1019,12 +1076,14 @@ button svg {
   border-color: #69835b;
 }
 .widget-content {
+  flex: 1;
   padding: 19px 18px;
   min-height: 155px;
   overflow: auto;
   max-height: 650px;
 }
 .widget-footer {
+  margin-top: auto;
   border-top: 1px solid #f0f2ec;
   padding: 11px 17px;
   display: flex;
@@ -1937,7 +1996,7 @@ label {
   }
   .widget[style*="--widget-span: 3"],
   .widget[style*="--widget-span: 4"] {
-    grid-column: span 6;
+    flex-basis: calc(50% - 10px);
   }
   .composer-wrap {
     padding-left: 25px;
@@ -2031,7 +2090,7 @@ label {
     font-size: 10px;
   }
   .widget {
-    grid-column: span 12 !important;
+    flex-basis: 100% !important;
   }
   .saved-label {
     display: none;
@@ -2752,3 +2811,10 @@ label {
     flex-basis: 100%;
   }
 }
+.credited-image { display: inline-flex; flex-direction: column; max-width: 100%; min-width: 0; }
+.image-credit { font-size: 0.75rem; line-height: 1.5; overflow-wrap: anywhere; margin-top: 0.35rem; }
+.image-credit a { text-decoration: underline; }
+
+/* Per-card presentation overrides also apply to clean share snapshots. */
+.widget .content-prose, .share-card .content-prose { font-size: var(--block-font-size, 14px); text-align: var(--block-text-align, left); }
+.widget .local-preview { text-align: var(--block-text-align, left); }

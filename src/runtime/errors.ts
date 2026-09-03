@@ -25,6 +25,18 @@ export function normalizeError(error: unknown): NormalizedError {
       message:
         "The network request failed. The source may be offline or may not allow browser access. Check your connection, retry, or choose sample data.",
     };
+  if (
+    error instanceof SyntaxError ||
+    (error instanceof Error &&
+      /invalid (xml|json)|response does not match|parse|unsupported.*format/i.test(
+        error.message,
+      ))
+  )
+    return {
+      code: "invalid_response",
+      title: "The response could not be read",
+      message: error.message,
+    };
   return {
     code: "invalid",
     title: "Unable to load this widget",

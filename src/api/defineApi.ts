@@ -12,8 +12,11 @@ export const defineApi = (definition: ApiDefinition) =>
             prompt: operation.title,
             arguments: Object.fromEntries(
               Object.entries(operation.inputs)
-                .filter(([, v]) => v.default !== undefined)
-                .map(([key, v]) => [key, v.default]),
+                .filter(
+                  ([, v]) =>
+                    v.default !== undefined || (v.required && v.placeholder),
+                )
+                .map(([key, v]) => [key, v.default ?? v.placeholder]),
             ),
           },
         ],

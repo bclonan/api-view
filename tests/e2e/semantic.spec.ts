@@ -71,7 +71,7 @@ test("has all first-wave request forms and source-independent views", async ({
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByText("30 sources", { exact: true })).toBeVisible();
+  await expect(page.getByText("38 sources", { exact: true })).toBeVisible();
   for (const name of [
     "Art Institute of Chicago Art",
     "Crossref Research",

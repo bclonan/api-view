@@ -179,6 +179,11 @@ export async function invokeOperation(
           redirect: api.id.startsWith("custom-") ? "error" : "follow",
         });
         if (!response.ok) {
+          if (api.id === "unsplash") {
+            const detail = await response.json().catch(() => null);
+            if (detail?.error && ["code", "title", "message"].every((key) => typeof detail.error[key] === "string" && detail.error[key].length < 2000))
+              throw new ApiFailure({ code: detail.error.code, title: detail.error.title, message: detail.error.message, ...(response.status === 429 ? { retryAfter: Number(response.headers.get("Retry-After")) || 3600 } : {}) });
+          }
           const retry = response.headers.get("Retry-After");
           const retryAfter = retry
             ? /^\d+$/.test(retry)
@@ -240,7 +245,7 @@ export async function invokeOperation(
     rawResponse = await load(requestUrl);
     if (operation.expand) {
       const expansion = operation.expand,
-        ids = readPath(rawResponse, expansion.path);
+        ids = readPath(rawResponse, expansion.path) ?? (api.id === "met-museum" && (rawResponse as Row)?.total === 0 ? [] : undefined);
       if (!Array.isArray(ids))
         throw new Error(
           "Expected a list of record IDs. The response schema changed.",

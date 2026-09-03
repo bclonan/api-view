@@ -21,6 +21,15 @@ import {
   dependencies,
 } from "../runtime/bindings";
 import { stableId } from "../sources/security";
+import { blockOutcome } from "../runtime/outcomes";
+import { validateBlockStyle } from "../runtime/blockStyle";
+import {
+  validateContent,
+  contentEvidence,
+  contentIssues,
+  contentResult,
+} from "../runtime/content";
+import type { CanvasContent, ContentMeta } from "../types";
 import type { TaggedField } from "../types";
 import { discoverFields, readPath, pathParts } from "../runtime/fields";
 import {
@@ -241,6 +250,18 @@ export const useWorkspace = defineStore("workspace", () => {
     presentation?: PresentationSpec,
   ) {
     const original = getWidget(widgetId);
+    if (original.content) {
+      const copy = createContent(
+        { ...original.content, title: `${original.title} copy`.slice(0, 120) },
+        original.contentMeta?.origin ?? "user",
+        {
+          key: crypto.randomUUID(),
+          width: original.width,
+          presentation: presentation ?? original.presentation,
+        },
+      );
+      return copy;
+    }
     if (original.derived)
       return createDerived({
         sourceIds: original.derived.sourceIds,
@@ -348,6 +369,8 @@ export const useWorkspace = defineStore("workspace", () => {
         derived: w.derived,
         bindings: w.bindings,
         transforms: w.transforms,
+        content: w.content,
+        contentMeta: w.contentMeta,
       })),
     };
   }
@@ -466,6 +489,24 @@ export const useWorkspace = defineStore("workspace", () => {
   ) {
     if (!isRow(input) || !isRow(input.arguments))
       throw new Error("Widget arguments must be an object.");
+    if (input.content) {
+      validateContent(input.content);
+      if (input.apiId !== "canvas-content")
+        throw new Error("Local content must use the canvas content source.");
+      if (
+        input.contentMeta &&
+        (!isRow(input.contentMeta) ||
+          !["user", "agent", "computed"].includes(input.contentMeta.origin) ||
+          !Number.isFinite(Date.parse(input.contentMeta.updatedAt)) ||
+          !isRow(input.contentMeta.evidence) ||
+          Object.keys(input.contentMeta.evidence).length > 40 ||
+          Object.values(input.contentMeta.evidence).some(
+            (v) => typeof v !== "string" || v.length > 120,
+          ))
+      )
+        throw new Error("Invalid content authorship or evidence metadata.");
+    } else if (input.apiId === "canvas-content" && !input.derived)
+      throw new Error("Use create_content_block to supply local content.");
     const custom = definitions
       .find((a) => a.id === input.apiId)
       ?.operations.find((o) => o.id === input.operationId);
@@ -504,6 +545,20 @@ export const useWorkspace = defineStore("workspace", () => {
     const selected = input.presentation ?? "auto";
     const intended = selected === "auto" ? operation.preferred : selected;
     const w: Widget = {
+      content: input.content
+        ? JSON.parse(JSON.stringify(input.content))
+        : undefined,
+      contentMeta: input.content
+        ? JSON.parse(
+            JSON.stringify(
+              input.contentMeta ?? {
+                origin: "user",
+                updatedAt: new Date().toISOString(),
+                evidence: {},
+              },
+            ),
+          )
+        : undefined,
       id: requestedId ?? crypto.randomUUID(),
       derived: input.derived,
       title: input.title ?? operation.title,
@@ -552,6 +607,16 @@ export const useWorkspace = defineStore("workspace", () => {
   ) {
     signal?.throwIfAborted();
     const w = getWidget(widgetId);
+    if (w.content && w.contentMeta) {
+      w.result = contentResult(w.content, w.contentMeta);
+      w.rawResponse = JSON.parse(
+        JSON.stringify(w.content.records ?? w.content),
+      );
+      w.status = "ready";
+      w.refreshedAt = w.contentMeta.updatedAt;
+      w.error = undefined;
+      return summary(w);
+    }
     if (w.derived) {
       w.status = "ready";
       w.error = undefined;
@@ -613,10 +678,13 @@ export const useWorkspace = defineStore("workspace", () => {
     input: WidgetInput,
     signal?: AbortSignal,
     requestedId?: string,
+    waitForData = true,
   ) {
     signal?.throwIfAborted();
     const widgetId = insertWidget(input, requestedId);
-    await refreshWidget(widgetId, signal);
+    const pending = refreshWidget(widgetId, signal);
+    if (waitForData) await pending;
+    else void pending.catch(() => undefined); // Refresh records failures on its own card.
     return summary(getWidget(widgetId));
   }
   async function createDashboard(
@@ -638,7 +706,7 @@ export const useWorkspace = defineStore("workspace", () => {
     )
       throw new Error("Title must be at most 120 characters.");
     if (input.title) title.value = input.title;
-    const ids = input.widgets.map(w=>insertWidget(w));
+    const ids = input.widgets.map((w) => insertWidget(w));
     await Promise.all(ids.map((widgetId) => refreshWidget(widgetId, signal)));
     return getWorkspace();
   }
@@ -663,10 +731,13 @@ export const useWorkspace = defineStore("workspace", () => {
             ![
               "compact",
               "numberFormat",
+              "stockStyle",
+              "stockSymbol",
               "showSource",
               "filter",
               "sort",
               "sortDirection",
+              "style",
             ].includes(key),
         ) ||
         (p.props.filter !== undefined &&
@@ -680,10 +751,16 @@ export const useWorkspace = defineStore("workspace", () => {
           typeof p.props.compact !== "boolean") ||
         (p.props.showSource !== undefined &&
           typeof p.props.showSource !== "boolean") ||
+        (p.props.stockStyle !== undefined &&
+          !["candles", "line"].includes(p.props.stockStyle)) ||
+        (p.props.stockSymbol !== undefined &&
+          (typeof p.props.stockSymbol !== "string" ||
+            p.props.stockSymbol.length > 120)) ||
         (p.props.numberFormat !== undefined &&
           !["compact", "standard"].includes(p.props.numberFormat)))
     )
       throw new Error("Invalid presentation properties.");
+    validateBlockStyle(p.props?.style);
     if (
       [p.xField, p.yField].some(
         (key) =>
@@ -746,6 +823,9 @@ export const useWorkspace = defineStore("workspace", () => {
       : w.invocation.arguments;
     const { missing } = validateInput({
       ...w.invocation,
+      content: w.content,
+      contentMeta: w.contentMeta,
+      derived: w.derived,
       arguments: args,
       title: patch.title ?? w.title,
       presentation: patch.presentation?.type ?? w.presentation.type,
@@ -812,9 +892,19 @@ export const useWorkspace = defineStore("workspace", () => {
     w.invocation.arguments = args;
     w.missingInputs = missing;
     if (patch.mode) w.invocation.mode = patch.mode;
-    if (patch.title !== undefined) w.title = patch.title;
+    if (patch.title !== undefined) {
+      w.title = patch.title;
+      if (w.content && w.contentMeta) {
+        w.content.title = patch.title;
+        w.result = contentResult(w.content, w.contentMeta);
+        w.rawResponse = JSON.parse(
+          JSON.stringify(w.content.records ?? w.content),
+        );
+      }
+    }
     if (patch.width !== undefined) w.width = patch.width;
     w.presentation = presentation;
+    w.viewError = undefined;
     if (patch.bindings !== undefined)
       w.bindings = JSON.parse(JSON.stringify(patch.bindings));
     if (patch.transforms !== undefined)
@@ -857,7 +947,13 @@ export const useWorkspace = defineStore("workspace", () => {
     return { removed: widgetId, revision: revision.value };
   }
   function summary(w: Widget) {
-    const display = boundResult(w, widgets.value);
+    const display = {
+      ...boundResult(w, widgets.value),
+      answerIds: widgets.value
+        .filter((card) => card.content?.answerTo === w.id)
+        .map((card) => card.id),
+    };
+    display.issues.push(...contentIssues(w, widgets.value));
     return {
       id: w.id,
       title: w.title,
@@ -868,6 +964,7 @@ export const useWorkspace = defineStore("workspace", () => {
       transforms: w.transforms,
       width: w.width,
       status: w.status,
+      outcome: blockOutcome(w, display),
       envelopeId: w.result?.id,
       missingInputs: w.missingInputs,
       fields: w.result?.fields,
@@ -876,15 +973,64 @@ export const useWorkspace = defineStore("workspace", () => {
       shape: w.result?.shape,
       lastUpdated: w.refreshedAt,
       error: w.error,
+      content: w.content
+        ? {
+            kind: w.content.kind,
+            body: w.content.body?.slice(0, 3000),
+            question: w.content.question,
+            sourceIds: w.content.sourceIds,
+            citations: w.content.citations,
+            answerTo: w.content.answerTo,
+            answerIds: display.answerIds,
+            files: w.content.files?.map(
+              ({ id, name, access, mediaType, size, previewIssue }) => ({
+                id,
+                name,
+                access,
+                mediaType,
+                size,
+                previewIssue,
+              }),
+            ),
+          }
+        : undefined,
+      authorship: w.contentMeta,
     };
   }
   function getWorkspace() {
+    const blocks = widgets.value.map(summary);
+    const pending = blocks
+      .filter((w) =>
+        ["loading", "refreshing", "draft"].includes(w.outcome.status),
+      )
+      .map((w) => w.id);
+    const attention = blocks
+      .filter((w) =>
+        ["error", "blocked", "partial", "needs-input"].includes(
+          w.outcome.status,
+        ),
+      )
+      .map((w) => w.id);
     return {
+      status: attention.length
+        ? "partial"
+        : pending.length
+          ? "loading"
+          : "complete",
+      availability: {
+        pendingBlockIds: pending,
+        attentionBlockIds: attention,
+        usableBlockIds: blocks
+          .filter((w) => w.outcome.recordCount > 0)
+          .map((w) => w.id),
+        guidance:
+          "Inspect per-block outcomes. Retry failed sources individually; independent cards can continue.",
+      },
       id: id.value,
       title: title.value,
       revision: revision.value,
       mode: mode.value,
-      widgets: widgets.value.map(summary),
+      widgets: blocks,
       dashboards: dashboards.value,
       selectedIds: selectedIds.value.filter((key) =>
         widgets.value.some((w) => w.id === key),
@@ -909,7 +1055,12 @@ export const useWorkspace = defineStore("workspace", () => {
   }
   function inspectWidget(widgetId: string) {
     const widget = getWidget(widgetId);
-    const display = boundResult(widget, widgets.value);
+    const display = {
+      ...boundResult(widget, widgets.value),
+      answerIds: widgets.value
+        .filter((card) => card.content?.answerTo === widget.id)
+        .map((card) => card.id),
+    };
     return {
       ...summary(widget),
       rawFields: discoverFields(widget.rawResponse, false),
@@ -927,7 +1078,124 @@ export const useWorkspace = defineStore("workspace", () => {
     };
   }
   function resultForWidget(widgetId: string) {
-    return boundResult(getWidget(widgetId), widgets.value);
+    const widget = getWidget(widgetId);
+    const display = {
+      ...boundResult(widget, widgets.value),
+      answerIds: widgets.value
+        .filter((card) => card.content?.answerTo === widget.id)
+        .map((card) => card.id),
+    };
+    display.issues.push(...contentIssues(widget, widgets.value));
+    return display;
+  }
+  function createContent(
+    content: CanvasContent,
+    origin: ContentMeta["origin"] = "user",
+    options: {
+      blockId?: string;
+      key?: string;
+      width?: number;
+      presentation?: PresentationSpec;
+    } = {},
+  ) {
+    validateContent(content);
+    const evidence = contentEvidence(content, widgets.value, options.blockId);
+    const blockId =
+      options.blockId ??
+      stableId("content", { dashboard: id.value, key: options.key ?? content });
+    const existing = widgets.value.find((w) => w.id === blockId);
+    if (existing && !options.blockId) return summary(existing);
+    if (options.blockId && !existing?.content)
+      throw new Error("Choose an existing content card to edit.");
+    const meta: ContentMeta = {
+      origin,
+      updatedAt: new Date().toISOString(),
+      evidence,
+    };
+    const result = contentResult(content, meta);
+    const presentation = options.presentation ??
+      (existing?.content?.kind === content.kind
+        ? existing?.presentation
+        : undefined) ?? {
+        type:
+          content.kind === "dataset"
+            ? "auto"
+            : content.kind === "embed"
+              ? "embed"
+              : content.kind === "file"
+                ? "file"
+                : content.kind === "search-results"
+                  ? "news"
+                  : "note",
+      };
+    validatePresentation(presentation, {} as Widget);
+    if (options.width !== undefined && !widths.includes(options.width))
+      throw new Error("Choose a supported card width.");
+    if (!existing)
+      insertWidget(
+        {
+          apiId: "canvas-content",
+          operationId: "content",
+          arguments: {},
+          content,
+          contentMeta: meta,
+          title: content.title,
+          mode: "live",
+          width: options.width ?? 6,
+          presentation: presentation.type,
+        },
+        blockId,
+      );
+    const widget = getWidget(blockId);
+    Object.assign(widget, {
+      title: content.title,
+      content: JSON.parse(JSON.stringify(content)),
+      contentMeta: meta,
+      result,
+      rawResponse: JSON.parse(JSON.stringify(content.records ?? content)),
+      status: "ready",
+      refreshedAt: meta.updatedAt,
+      presentation,
+      viewError: undefined,
+    });
+    if (options.width) widget.width = options.width;
+    touch();
+    return summary(widget);
+  }
+  function setViewError(widgetId: string, error?: Widget["viewError"]) {
+    const widget = widgets.value.find((w) => w.id === widgetId);
+    if (widget) widget.viewError = error;
+  }
+  function createContents(
+    items: {
+      content: CanvasContent;
+      key: string;
+      presentation?: PresentationSpec;
+      width?: number;
+    }[],
+    origin: ContentMeta["origin"] = "agent",
+  ) {
+    if (!items.length || items.length > 6)
+      throw new Error("Return one to six answer blocks.");
+    const ids = items.map((item) =>
+      stableId("content", { dashboard: id.value, key: item.key }),
+    );
+    if (new Set(ids).size !== ids.length)
+      throw new Error("Each answer block needs a distinct key.");
+    const missing = ids.filter((id) => !widgets.value.some((w) => w.id === id));
+    if (widgets.value.length + missing.length > 40)
+      throw new Error(
+        "This page has room for 40 cards. Remove cards or choose fewer outputs.",
+      );
+    for (const item of items) {
+      validateContent(item.content);
+      contentEvidence(item.content, widgets.value);
+      if (item.presentation)
+        validatePresentation(item.presentation, {} as Widget);
+      if (item.width !== undefined && !widths.includes(item.width))
+        throw new Error("Choose a supported card width.");
+    }
+    return items.map((item) => createContent(item.content, origin, item));
   }
   function moveWidget(widgetId: string, position: number) {
     const widget = getWidget(widgetId);
@@ -1273,6 +1541,9 @@ export const useWorkspace = defineStore("workspace", () => {
     }
   }
   return {
+    createContent,
+    createContents,
+    setViewError,
     fieldSelections,
     selectFields,
     createDerived,

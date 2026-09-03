@@ -20,7 +20,7 @@ import {
 import { useWorkspace } from "./stores/workspace";
 import DiscoverDrawer from "./discover/DiscoverDrawer.vue";
 import OperationPicker from "./discover/OperationPicker.vue";
-import WidgetShell from "./widgets/WidgetShell.vue";
+import WorkspaceGrid from "./workspace/WorkspaceGrid.vue";
 import AgentComposer from "./workspace/AgentComposer.vue";
 import DashboardManager from "./workspace/DashboardManager.vue";
 import RequestHistory from "./workspace/RequestHistory.vue";
@@ -34,6 +34,7 @@ import ModalDialog from "./components/ModalDialog.vue";
 import { templates, createTemplate } from "./workspace/templates";
 import { registerTools, webmcpStatus } from "./webmcp/register";
 import { createToolRunner } from "./webmcp/handlers";
+import { blockOutcome } from "./runtime/outcomes";
 import { download } from "./runtime/download";
 import { useEditor } from "./stores/editor";
 import { pageContext } from "./workspace/context";
@@ -42,9 +43,19 @@ import ShareView from "./workspace/ShareView.vue";
 import SourceDiscovery from "./discover/SourceDiscovery.vue";
 import ComposeBlock from "./workspace/ComposeBlock.vue";
 import JsonBlock from "./blocks/JsonBlock.vue";
+import ContentEditor from "./workspace/ContentEditor.vue";
+import AskCanvas from "./workspace/AskCanvas.vue";
+import { summarizeCanvas } from "./workspace/insights";
 import type { CustomApiConfig } from "./types";
 const store = useWorkspace();
 const editor = useEditor();
+function addSummary() {
+  try {
+    store.createContent(summarizeCanvas(store), "computed");
+  } catch (e) {
+    error.value = (e as Error).message;
+  }
+}
 const collapsed = computed({
   get: () => editor.collapsed,
   set: (value) => {
@@ -122,13 +133,14 @@ const allReady = computed(
   () =>
     store.widgets.length > 0 &&
     store.widgets.every(
-      (w) => w.status === "ready" && !store.resultForWidget(w.id).issues.length,
+      (w) => blockOutcome(w, store.resultForWidget(w.id)).status === "ready",
     ),
 );
 const runTool = createToolRunner(store);
 let cleanup: (() => void) | undefined;
 let disposed = false;
 function select(apiId: string, operationId: string) {
+  if (window.innerWidth <= 600) collapsed.value = true;
   picker.value = { apiId, operationId };
 }
 async function buildTemplate(id: string) {
@@ -254,6 +266,9 @@ onBeforeUnmount(() => {
           </button>
         </p>
         <div class="workspace-data-actions">
+          <button class="button" @click="editor.contentEditor = {}">
+            Add content
+          </button>
           <button class="button" @click="sourceDiscovery = true">
             Add public source
           </button>
@@ -263,6 +278,20 @@ onBeforeUnmount(() => {
             @click="composeOpen = true"
           >
             Connect data
+          </button>
+          <button
+            class="button"
+            :disabled="!store.widgets.length"
+            @click="editor.questionScope = [...store.selectedIds]"
+          >
+            Ask about data
+          </button>
+          <button
+            class="button"
+            :disabled="!store.widgets.length"
+            @click="addSummary"
+          >
+            Summarize page
           </button>
           <button
             class="button"
@@ -283,6 +312,20 @@ onBeforeUnmount(() => {
           Request history
         </button>
         <RequestHistory v-if="historyOpen" @close="historyOpen = false" />
+        <ContentEditor
+          v-if="editor.contentEditor"
+          v-bind="editor.contentEditor"
+          @close="editor.contentEditor = undefined"
+        />
+        <AskCanvas
+          v-if="editor.questionScope"
+          :scope="editor.questionScope"
+          :block-id="editor.questionBlockId"
+          @close="
+            editor.questionScope = undefined;
+            editor.questionBlockId = undefined;
+          "
+        />
         <div class="workspace-title">
           <div>
             <div class="eyebrow">WORKSPACE</div>
@@ -463,13 +506,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div v-else class="populated-workspace">
-          <div class="workspace-grid">
-            <WidgetShell
-              v-for="widget in store.widgets"
-              :key="widget.id"
-              :widget="widget"
-            />
-          </div>
+          <WorkspaceGrid />
           <button class="add-source-button" @click="templatesOpen = true">
             <Plus :size="16" /> Add another perspective
           </button>
@@ -481,9 +518,11 @@ onBeforeUnmount(() => {
                 : "Your workspace is taking shape"
             }}<span>·</span
             >{{
-              store.widgets.some((w) => w.invocation.mode === "sample")
-                ? "Sample values are illustrative"
-                : "Data loaded directly from public sources"
+              store.widgets.some((w) => w.content)
+                ? "Local content and source attribution are shown on each card"
+                : store.widgets.some((w) => w.invocation.mode === "sample")
+                  ? "Sample values are illustrative"
+                  : "Data loaded directly from public sources"
             }}
           </div>
         </div>

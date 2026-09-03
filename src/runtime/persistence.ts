@@ -44,18 +44,27 @@ export async function readLocalEntries<T>(prefix: string): Promise<T[]> {
     if (key.startsWith(prefix)) entries.set(key, value as T);
   return [...entries.values()];
 }
-export async function writeLocal(key: string, value: unknown) {
-  const copy = JSON.parse(JSON.stringify(value));
+export async function writeLocal(
+  key: string,
+  value: unknown,
+  options?: { structured?: boolean },
+) {
+  const copy = options?.structured ? value : JSON.parse(JSON.stringify(value));
   memory.set(key, copy);
   while (memory.size > 100) memory.delete(memory.keys().next().value!);
   const db = await open();
-  if (!db) return;
-  await new Promise<void>((resolve) => {
+  if (!db) return false;
+  return new Promise<boolean>((resolve) => {
     const tx = db.transaction("entries", "readwrite");
-    tx.objectStore("entries").put(copy, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => resolve();
-    tx.onabort = () => resolve();
+    try {
+      tx.objectStore("entries").put(copy, key);
+    } catch {
+      resolve(false);
+      return;
+    }
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => resolve(false);
+    tx.onabort = () => resolve(false);
   });
 }
 export async function pruneLocal(prefix: string, max: number) {

@@ -1,13 +1,28 @@
 import { readPath, appendPath } from "./fields";
 import type { Row } from "../types";
+import { scenarioCollection, normalizeScenario } from "./scenarios";
 const object = (v: unknown): v is Row =>
   !!v && typeof v === "object" && !Array.isArray(v);
 
-export function inferStructure(raw: unknown, path?: string) {
-  if (path !== undefined)
-    return { data: readPath(raw, path), collectionPath: path };
+export function inferStructure(
+  raw: unknown,
+  path?: string,
+): { data: unknown; collectionPath?: string; score?: number } {
+  if (path !== undefined) {
+    const selected = readPath(raw, path);
+    const levels = (path.match(/\[\]/g) ?? []).length;
+    return {
+      data:
+        Array.isArray(selected) && levels > 1
+          ? selected.flat(levels - 1)
+          : selected,
+      collectionPath: path,
+    };
+  }
   if (Array.isArray(raw)) return { data: raw, collectionPath: "$" };
   if (!object(raw)) return { data: raw };
+  const scenario = scenarioCollection(raw);
+  if (scenario) return scenario;
   if (Array.isArray(raw.nodes) && Array.isArray(raw.edges))
     return { data: raw, collectionPath: "$" };
   if (raw.type === "FeatureCollection" && Array.isArray(raw.features))
@@ -61,7 +76,7 @@ export function normalizeStructure(data: unknown): unknown {
         ...(depth !== undefined ? { depth } : {}),
       };
     }
-    return v;
+    return normalizeScenario(v);
   };
   if (object(data) && data.type === "FeatureCollection")
     return Array.isArray(data.features) ? data.features.map(feature) : [];

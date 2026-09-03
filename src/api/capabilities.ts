@@ -28,6 +28,8 @@ export function inspectCapability(sourceId: string, capabilityId: string) {
       "json",
     ],
     authentication: api.authentication ?? "none",
+    ...(api.keySetup ? { keySetup: api.keySetup } : {}),
+    ...(api.accessNote ? { accessNote: api.accessNote } : {}),
     browser: api.browser ?? { expectedCors: "unknown" },
     docs: api.docs,
   };
@@ -45,7 +47,7 @@ export function searchCapabilities(
     query,
     undefined,
     100,
-    options.noAuthOnly === false ? "any" : "none",
+    options.noAuthOnly === true ? "none" : "any",
   )
     .filter(
       (m) =>

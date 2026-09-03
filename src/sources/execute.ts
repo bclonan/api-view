@@ -31,7 +31,7 @@ export async function executeSource(
   assertPublicSettings({ url, headers: options.headers, body: options.body });
   const canonical = new URL(url);
   canonical.searchParams.sort();
-  const key = `cache:${stableId("source", { config, args, url: canonical.href })}`;
+  const key = `cache:${stableId("source", { normalizationVersion: 2, config, args, url: canonical.href })}`;
   const cached =
     mode === "live" && !fresh && config.method === "GET"
       ? await readLocal<{ response: ApiResponse; expiresAt: number }>(key)

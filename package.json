@@ -9,8 +9,9 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:apis": "playwright test --config playwright.live.config.ts tests/live/catalog.spec.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
-    "lint": "eslint src tests *.ts *.js",
+    "lint": "eslint src tests netlify *.ts *.js",
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
