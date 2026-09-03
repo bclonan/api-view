@@ -1,4 +1,5 @@
 import Ajv from "ajv";
+import { recordToolResult } from "./inspection";
 import {
   workspaceToolNames,
   runWorkspaceTool,
@@ -378,6 +379,7 @@ export function createToolRunner(store: ReturnType<typeof useWorkspace>) {
       ["error", "blocked"].includes((output as any)?.outcome?.status)
     )
       ok = false;
+    recordToolResult(name, output);
     toolLog.value.unshift({
       id: crypto.randomUUID(),
       tool: name,

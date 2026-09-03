@@ -1,0 +1,14 @@
+{
+  "name": "API Canvas",
+  "description": "Turn public data into connected cards. People and WebMCP agents work on the same local canvas.",
+  "liveUrl": "https://api-canvas-bclonan.netlify.app",
+  "repositoryUrl": "https://github.com/bclonan/api-view",
+  "repositoryPublicVerified": false,
+  "verifiedDate": "2026-09-03",
+  "youtubeUrl": "[YOUTUBE_URL]",
+  "placeholders": {
+    "live": "[LIVE_URL]",
+    "repository": "[REPOSITORY_URL]",
+    "youtube": "[YOUTUBE_URL]"
+  }
+}

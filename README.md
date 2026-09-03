@@ -1,141 +1,120 @@
 # API Canvas
 
-A local-first workspace that turns public API responses into charts, maps, records, images, and tables. Human controls and 31 native WebMCP tools use the same Pinia actions.
+Turn public data into connected cards. People and WebMCP agents use the same Vue interface, Pinia actions and local dashboard model.
 
-Live app: [api-canvas-bclonan.netlify.app](https://api-canvas-bclonan.netlify.app). See [verification notes](docs/VERIFICATION.md) for the production smoke test and browser limitations.
+[Live canvas](https://api-canvas-bclonan.netlify.app/) · [WebMCP tools](https://api-canvas-bclonan.netlify.app/webmcp) · [Hackathon overview](https://api-canvas-bclonan.netlify.app/hackathon)
 
-The [public source and connected block guide](docs/PUBLIC_SOURCES.md) covers generic API and webpage adapters, field mappings, derived blocks, clean sharing and the latest release checks.
+![API Canvas preview](public/og-image.png)
 
-## Run it
+The native catalog currently contains 37 tools. `/webmcp` derives its cards, schemas and classifications from the canonical `nativeContracts` export. Older compatibility aliases remain in the local runner and are not counted as native tools.
 
-Requires Node.js 22.12 or newer.
+## Run locally
+
+Use Node.js 22.12 or newer and a current browser.
 
 ```sh
 npm ci
+npx playwright install chromium
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The address uses IPv4 explicitly to avoid confusing it with another app on localhost. The build is a static Vite app and needs no backend or credentials.
+Open http://127.0.0.1:5173. Vite uses an explicit IPv4 address and a strict port. This is a local-first application with no account system or hosted LLM.
 
 ```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+# Or run all gates in order:
 npm run verify
 npm run preview
 ```
 
-`verify` runs lint, unit and renderer tests, TypeScript checks, the production build, and browser tests. The browser suite uses Playwright Chromium. On a new machine, install its browser with `npx playwright install chromium`. The optional `npx playwright test --config playwright.live.config.ts` checks the production site with real public API and HTML responses.
+The Playwright suite starts its own Vite server on port 5194. Close another server on that port before running it. `npm run test:apis` probes the catalog on the live deployment. Real provider availability varies; review the recorded date and failures in [API audit](docs/API_AUDIT.md).
 
-## Semantic public-data branch
+## Environment and browser access
 
-Branch preview: [Open the semantic public-data build](https://6a987ca2b7a2d0eb1c510dda--api-canvas-bclonan.netlify.app).
+The main workspace needs no API key. Public endpoints must allow browser access. JSON, CSV, XML, feeds, permitted HTML tables and embedded JSON use the shared adapters; the app does not provide an unrestricted proxy or execute supplied scripts.
 
-This branch adds semantic normalization, scored component suggestions and generic request tools before extending the catalog to 30 sources. The 29 reusable views include document cards, comparisons, histograms, calendars and relationship graphs. Numeric IDs and years remain separate from chart measures.
+Optional server setting `UNSPLASH_ACCESS_KEY` enables the bounded Unsplash Netlify function. Set it in Netlify's environment and redeploy. Never put credentials in VITE variables, source URLs, public headers or shared state. [Image and open data APIs](docs/IMAGE_AND_OPEN_DATA_APIS.md) describes attribution and provider requirements. Census live access requires a key that this adapter does not currently accept, so its supported fixture remains explicitly labeled sample.
 
-Describe a goal in the command box, inspect the proposed requests, then choose Run this plan. The local planner maps supported subjects, places, dates and filters to typed inputs. It asks about missing locations or unsupported scope. A connected WebMCP agent can plan more broadly through the catalog tools.
+Optional `VITE_DEMO_VIDEO_URL` is a public HTTPS YouTube URL for the hackathon embed. It is not a credential. URLs and submission status are centralized in `src/site/project.json`; the video remains `[YOUTUBE_URL]` until configured.
 
-Try these two commands in sequence:
+Native tools require an experimental WebMCP-capable browser and a compatible connected agent. API Canvas detects `document.modelContext.registerTool` and reports availability. It never installs a substitute API. The local tool runner works without native support but is not evidence of a native connection. Follow the current [Chrome imperative API documentation](https://developer.chrome.com/docs/ai/webmcp/imperative-api) for browser availability.
 
-> Build me an earthquake research dashboard. Map magnitude 5+ earthquakes from the past week, find recent research about earthquakes, identify the largest earthquake and add its local weather. Pick appropriate views and arrange everything clearly.
+## Use the canvas
 
-> Duplicate the earthquake data as a histogram, make the papers a table showing only title, authors, publication year and DOI, and move the weather beside the map.
+Choose a starter dashboard or source in Discover, or add a public source through the generic source editor. Cards expose Interface, Data, Request and Code views. Original responses stay available beside normalized data. Sources are separate from presentation; changing a chart to a table can reuse the same response.
 
-The second command reuses the existing responses. Request history also creates additional views without a new request. It persists the latest 40 requests in IndexedDB. Response caches use each capability's TTL; explicit refresh and Test source bypass them. Source tests report actual access on this device, with the last test date and any failure.
+Local dashboard management supports create, rename, switch, duplicate, clear and delete. Each dashboard preserves its layout, sources, bindings and presentation settings. Clearing and deleting require confirmation. Undo clear is available while that dashboard remains empty. The previous single-workspace storage migrates without erasing its original entry.
 
-See [implementation notes](docs/SEMANTIC_EXPANSION.md) for contracts, supported scope and source checks.
+Select fields in Connect data to build a derived card. Declarative mappings support selection, filtering, sorting, grouping, arithmetic and joins. No supplied code runs. Drag cards, use their move controls, or ask WebMCP to reorder and resize them. Cards fill available row space and stack on mobile.
 
-## Use the workspace
+Add content creates notes, cited answers, datasets, search results, media embeds and local file cards. Question cards capture all cards or a chosen subset. A connected agent reads the structured question context and submits one to six ordinary answer blocks; these remain editable, connected and queryable. Local files require a user selection or reconnection. Supported previews reuse the existing renderers; unavailable references retain metadata and a recovery action.
 
-Choose a starter dashboard or select a source in Discover. Each operation generates its form from the provider definition. Required inputs can remain empty when adding a widget. Complete them in the resulting widget, or have an agent call `update_widget`.
+Use sample mode for labeled illustrative fixtures. Live failures stay errors until a retry succeeds or you explicitly select sample data. A reload replays safe GET requests and samples; other methods wait for a visible request action. Source requests can be cancelled, and stale responses cannot overwrite another dashboard.
 
-Each widget has Interface, Data, Request, and Code views. Its menu also opens the original response, input settings, and visualization settings. Tables support sorting, filtering, and pagination. Charts support field mapping. Changing a visualization uses the existing response. Changing request arguments or data mode discards the previous response and reloads it.
-
-The data-mode selector sets the default for new widgets. Every widget identifies its own mode. Sample values are illustrative, fixed fixtures and may not match the chosen search or location. Live requests go directly from the browser to the provider. Failed live requests remain visible errors until you retry or explicitly choose sample data.
-
-Use the Dashboard selector to switch between up to 30 dashboards saved on this device. New dashboard preserves the current one. Manage dashboard offers rename, duplicate, and delete. Clear dashboard asks for confirmation and offers Undo clear while that dashboard remains empty. Deleting or clearing one dashboard leaves its neighbors intact.
-
-The store migrates the previous single workspace into the local dashboard library and leaves the original storage entry intact. Widget IDs and cross-widget bindings survive switching and reload. GET requests and samples replay when restored. Other live HTTP methods wait for an explicit load or refresh, so a reload cannot repeat a write request. In-flight requests are cancelled on switch, clear, or deletion.
-
-Export contains one dashboard's configuration, bindings, transforms, and custom API definitions. It excludes cached API responses. Widget data export contains the original response. Import validates the entire file before replacing the active dashboard. Other dashboards stay saved. Conflicting custom API IDs are rejected rather than overwritten.
-
-## Arbitrary data and bindings
-
-Add API or local data in Discover opens a declarative API editor. It supports a name, base URL, endpoint, HTTP method, generated inputs, path/query/header variables, JSON body, sample response, optional response schema, and dataset path. Preview sample and Test request use the same executor as built-in APIs. Custom definitions appear in Discover and WebMCP search. Settings are local and included in exports; do not enter secrets. Live endpoints must permit browser requests. There is no proxy or backend.
-
-Every response retains its original JSON. Fields in the widget menu reveals nested paths, inferred types, nullability, and representative values. Paths support dots, array indexes, and quoted keys, such as `properties.mag`, `results[0].count`, and `["a.b"]`. `[]` in discovery means an array item.
-
-Visualization settings include visible fields, chart axes, number format, spacing, and source visibility. Data bindings select values independently of those presentation choices. Bind a slot to this widget, another widget, or fixed text. `$data` selects a dataset before transforms. Local normalized paths read each displayed row; original-response paths and references to another widget read that source's complete value. Missing or failed sources produce a visible binding notice.
-
-The existing renderer consumes the bound result. It does not choose components by API identity. Component definitions describe accepted capabilities, slots, properties, and layout choices. Weather, book, and drug views remain optional conveniences. Generic components work with the same data.
-
-Row controls offer sorting and limits. The transform editor also accepts declarative select, rename, filter, map, derive, aggregate, group, flatten, merge, and left-join steps. No scripts run. A configuration has at most 20 steps and transforms inspect at most 5,000 rows. The [agent guide](docs/AGENT_GUIDE.md) documents the step fields.
-
-The Public data dashboard starter uses NASA, USGS, openFDA, and Census through existing adapters. Its final record binds selected values from all four sources. Change that record to metric to make population the primary number. Census stays visibly labeled as a sample.
-
-## Sources
-
-| Source               | Operation                           | Live support                                       |
-| -------------------- | ----------------------------------- | -------------------------------------------------- |
-| U.S. Treasury        | Debt to the Penny                   | Verified in the app browser                        |
-| Open-Meteo           | Current weather and hourly forecast | Verified                                           |
-| USGS                 | Recent earthquakes                  | Verified                                           |
-| Open Library         | Book search                         | Verified                                           |
-| openFDA              | Drug label search                   | Verified                                           |
-| Wikipedia            | Article summary and image           | Verified                                           |
-| Open-Meteo Geocoding | Location search                     | Verified                                           |
-| NASA Images          | Image search                        | Verified                                           |
-| U.S. Census          | 2020 state population               | Sample only, live endpoint now requires an API key |
-| GitHub               | Public repository search            | Verified                                           |
-| PokéAPI              | Pokémon profile                     | Verified                                           |
-| Lorem Picsum         | Photo collection                    | Verified, no location search                       |
-
-Live verification took place on September 2, 2026. Availability and provider rate limits can change. Census returned a missing-key page during verification. This app does not store API keys, so its Census adapter explicitly rejects live requests. The government template includes a labeled Census sample even when the new-widget default is live.
+Share / present creates a redacted snapshot at `/#share=...`, with no editing chrome or source requests. Review it before distributing the link. Credentials, file handles, local paths and attachment bytes are excluded. Answer text or derived values copied from files can still be included, so inspect the preview. Configuration export preserves one dashboard; import validates before replacement and leaves other dashboards intact.
 
 ## Architecture
 
 ```text
-Provider definition
-  → generated form / describe_api
-  → validated request
-  → original response + SemanticResult
-  → deterministic presentation selection
-  → reusable renderer inside WidgetShell
+Human UI or WebMCP arguments
+  -> input validation and permission checks
+  -> existing workspace actions and API adapters
+  -> raw response + normalized data + provenance
+  -> declarative transforms and bindings
+  -> reusable component inside WidgetShell
+  -> visible Vue update and structured tool result
 ```
 
-- `src/api/providers/` has one compact adapter per source. Each defines inputs, URL construction, response extraction, semantic hints, and a sample fixture. The registry handles lookup and capability search.
-- `src/runtime/` validates inputs, handles transport failures, detects value types and data shapes, and resolves presentations. Original responses remain separate from normalized results.
-- `src/stores/workspace.ts` owns widget state, revisions, persistence, import/export, and cancellation. Per-widget request ownership prevents old or removed requests from overwriting newer state.
-- `src/blocks/` provides 24 presentation modes. Related record, book, drug, and quote layouts share rendering code. Charts load on demand. The map is a schematic coordinate plot with links to OpenStreetMap, not a tile-based mapping application.
-- `src/values/ValueRenderer.vue` formats numbers, currency, percentages, dates, links, images, booleans, coordinates, and other cell values. Remote content renders as text. Executable link schemes are never linked.
-- `src/webmcp/` defines exactly 12 stable tools. The catalog is data, rather than one tool per API. AJV validates every call before it reaches the store. Mutations accept an optional `expectedRevision`.
+- `src/App.vue` owns restore, refresh scheduling and WebMCP registration. Minimal History API navigation adds `/webmcp` and `/hackathon` while keeping this shell mounted. Clean hash-based sharing remains separate.
+- `src/stores/workspace.ts` owns cards, revisions, dashboards and shared actions. Small recipes use localStorage. `src/runtime/persistence.ts` stores response caches, request history and local files in IndexedDB.
+- `src/api/registry.ts`, `src/api/providers/` and `src/sources/` define providers, generated inputs, extraction and generic public-data adapters.
+- `src/runtime/` handles normalization, inference, field paths, errors and bounded transforms. Raw values remain separate from displayed values.
+- `src/blocks/definitions.ts` is the component registry. `BlockRenderer.vue` dispatches reusable tables, charts, maps, sports cards, content, media and other views. ECharts loads separately. Maps are schematic coordinate views with map-service links.
+- `src/webmcp/contracts.ts` and `workspaceTools.ts` define tools and schemas. `handlers.ts` validates inputs with AJV; `register.ts` chooses the native set and owns registration cancellation. Workspace tools check output envelopes; older tools retain their result shapes.
+- `src/site/toolDocs.ts` derives documentation from that same native set. It supplies editorial examples and workflows, never another registration system. Tests validate every argument example against its real JSON Schema.
+- `vite.config.ts` emits route-specific HTML metadata. `netlify.toml` retains the existing SPA fallback, security headers and build configuration.
 
-## WebMCP
+## Add a tool or source
 
-Tools register through `document.modelContext.registerTool` with registration-owned AbortSignals. Execution cancellation reaches network requests. Registration failures abort the partially registered set. The implementation uses `webmcp-types` and follows [Chrome's imperative API documentation](https://developer.chrome.com/docs/ai/webmcp/imperative-api).
+Add a strict contract in `src/webmcp/workspaceTools.ts` and dispatch it through `runWorkspaceTool` to the existing domain/store action. Workspace contracts are included in native registration automatically. For older general contracts in `contracts.ts`, explicitly select them in `register.ts` if they should be native.
 
-The browser must support the experimental WebMCP API and have a compatible agent connected. The app reports availability. It never installs a substitute `document.modelContext`. The Agent tools dialog can execute the same handlers locally in any browser. That local runner is not evidence of native support. See the verification notes for native browser checks.
+Add a valid argument example and optional prompt override in `src/site/toolDocs.ts`. New workflows must refer to registered tool names and explain their data dependencies, approval boundary and partial failures. Use current source IDs and revision checks for mutations. Keep untrusted content inert, propagate cancellation, and return actionable outcomes.
 
-| Tool               | Action                                                                            |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `search_apis`      | Find operations by goal and category                                              |
-| `describe_api`     | Read input definitions and availability                                           |
-| `invoke_api`       | Request data without changing the workspace                                       |
-| `create_widget`    | Create a widget or a pending input form                                           |
-| `create_dashboard` | Append up to 12 widgets                                                           |
-| `update_widget`    | Update title, inputs, mode, layout, or presentation                               |
-| `refresh_widget`   | Replay one stored request                                                         |
-| `refresh_widgets`  | Replay selected or all requests                                                   |
-| `transform_widget` | Change visualization without a request                                            |
-| `remove_widget`    | Remove a widget and cancel its request                                            |
-| `get_workspace`    | Read IDs, status, fields, and revision                                            |
-| `export_workspace` | Return versioned configuration                                                    |
-| `manage_dashboard` | Create, switch, duplicate, rename, clear, undo clear, or delete a local dashboard |
-| `inspect_widget`   | Discover raw paths, types, binding provenance, and compatible views               |
-| `list_components`  | Inspect the existing component definitions and capabilities                       |
-| `define_api`       | Add a declarative custom API or local dataset to the existing catalog             |
+Add provider operations through `defineApi` in `src/api/providers/` and the existing registry. Supply inputs, request construction, extraction and a clearly labeled fixture. Reuse semantic hints and components before creating a new renderer.
 
-The composer supports a bounded set of local commands for the demo. It does not call a language model. Use a connected WebMCP agent for arbitrary intent planning. See [the agent guide](docs/AGENT_GUIDE.md) and [verification notes](docs/VERIFICATION.md).
+Tests should cover meaningful validation and state changes, errors, permissions and UI editability. Run `npm run verify` before a contribution. Update the relevant guide, source examples and release evidence. Do not commit credentials, private responses or local attachments.
 
-## Extend it
+## Deployment and submission status
 
-Add a provider with `defineApi`, supply its operation inputs, `buildUrl`, `extract`, and `sample`, then include it in the registry. Most providers need no Vue changes. Add semantic hints for ambiguous fields and an optional preferred presentation. Numeric string amounts remain unchanged in the original response and format through semantic field types.
+The existing linked Netlify site is `api-canvas-bclonan`. Build and verify before deploying the same site:
 
-The current scope has no account system, backend proxy, arbitrary endpoint executor, API-key storage, or drag-and-drop layout editor. It supports up to 40 widgets, 12 additions per dashboard call, bounded inputs, and a 5 MB response text limit. Live API content and images still require a network connection.
+```sh
+npx netlify status
+npm run build
+npx netlify deploy --dir dist --functions netlify/functions --no-build --prod
+```
+
+For a Windows certificate-chain issue, the existing environment supports Node's system certificate store using a temporary `NODE_OPTIONS=--use-system-ca`. Do not disable TLS validation.
+
+The live root URL responded on September 3, 2026. [Verification notes](docs/VERIFICATION.md) distinguish new local checks from deployed evidence. `/hackathon` includes the project explanation, architecture, extension guide and submission checklist. [Demo script](docs/demo-video-script.md) contains the exact 2:50 narration also shown on the page.
+
+Detected repository: https://github.com/bclonan/api-view. An unauthenticated GitHub API check returned 404 on September 3, 2026. Public access is unverified, and this release must be pushed before claiming complete public source. No push or repository visibility change is performed by the app. The video is still `[YOUTUBE_URL]`; record, upload and verify public access, audio and duration before submission.
+
+MIT licensing now covers the project code in this checkout. No prior root license existed. Bundled fonts retain their OFL notices under `public/fonts/`. Public data and third-party media retain their source-specific terms and attribution requirements.
+
+## Guides and limits
+
+- [Public sources and connected blocks](docs/PUBLIC_SOURCES.md)
+- [Semantic normalization and component selection](docs/SEMANTIC_EXPANSION.md)
+- [Agent guide](docs/AGENT_GUIDE.md)
+- [Sports, places and source outcomes](docs/SCENARIO_BLOCKS.md)
+- [Content, embeds and questions](docs/CONTENT_WORKFLOWS.md)
+- [Local files and answer bundles](docs/LOCAL_FILES_AND_ANSWERS.md)
+- [Dashboard layout](docs/DASHBOARD_LAYOUT.md)
+- [Images and open collections](docs/IMAGE_AND_OPEN_DATA_APIS.md)
+
+The workspace allows 40 cards, up to 30 saved dashboards and bounded request history. Transforms accept up to 20 steps and inspect at most 5,000 rows. Local file cards hold up to eight references, with bounded previews. These limits keep a browser workspace manageable. CORS, network failures, provider keys and rate limits can prevent live access. Missing data is reported rather than filled in silently.

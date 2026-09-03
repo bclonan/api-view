@@ -7,6 +7,7 @@ export const webmcpStatus = ref<
   "checking" | "available" | "unavailable" | "error"
 >("checking");
 export const webmcpError = ref("");
+export const registeredToolNames = ref<string[]>([]);
 // Keep compatibility aliases in the local runner without duplicating native schemas.
 const nativeNames = new Set([
   ...workspaceContracts.map((contract) => contract.name),
@@ -25,6 +26,7 @@ export const nativeContracts = contracts.filter((contract) =>
 );
 export async function registerTools(store: ReturnType<typeof useWorkspace>) {
   const controller = new AbortController();
+  registeredToolNames.value = [];
   const context = document.modelContext;
   if (!context?.registerTool) {
     webmcpStatus.value = "unavailable";
@@ -47,10 +49,12 @@ export async function registerTools(store: ReturnType<typeof useWorkspace>) {
         },
         { signal: controller.signal },
       );
+      registeredToolNames.value.push(contract.name);
     }
     webmcpStatus.value = "available";
   } catch (error) {
     controller.abort();
+    registeredToolNames.value = [];
     webmcpStatus.value = "error";
     webmcpError.value = error instanceof Error ? error.message : String(error);
   }

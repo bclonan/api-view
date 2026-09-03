@@ -1,5 +1,19 @@
 # Verification
 
+## WebMCP documentation and hackathon pages, September 3, 2026
+
+Production deployment `6a99139b60592eb2a3965d93` is live at [API Canvas](https://api-canvas-bclonan.netlify.app/), [WebMCP](https://api-canvas-bclonan.netlify.app/webmcp) and [Hackathon](https://api-canvas-bclonan.netlify.app/hackathon). The deployment uses the existing Netlify site and function directory. No repository push or visibility change was made.
+
+`npm run verify` passed lint, TypeScript checks, 269 unit/integration tests, the build and all 52 Playwright tests. Final documentation result examples also passed all 269 unit tests. After correcting whitespace handling in the static social metadata generator, lint and build passed again. The final production suite passed six tests across 320, 375, 768, 1024 and 1440 px, including native-registration stubs, exact catalog membership, navigation, sample card creation, visualization changes, reload persistence, safe previews, copy feedback and native-unavailable behavior. It compared all five public asset responses byte-for-byte with the checked build inputs and verified server-returned Open Graph and Twitter titles. No page exceptions or horizontal overflow occurred in these workflows.
+
+The first production asset probe encountered this machine's Node certificate-chain error. Re-running with a temporary `NODE_OPTIONS=--use-system-ca` passed; TLS validation was not disabled. Vite still reports the existing advisory about chunks over 500 KB. New documentation components are lazy-loaded.
+
+The in-app browser separately discovered all 37 actual native tools, matching the 37 documented cards. Native `get_workspace` remained callable after navigation between the new routes. A request to inspect a nonexistent card returned `ok: false`, `status: error`, an `invalid` code and recovery guidance. The seven existing dashboards and seven active card IDs remained unchanged after the production reload. Desktop at 1440 px and mobile at 375 px showed no overflow. The temporary viewport override was cleared and the Hackathon page was left open.
+
+Final production screenshots are `artifacts/release/webmcp-{320,375,768,1024,1440}.png` and `hackathon-{320,375,768,1024,1440}.png`. Running the full local suite also regenerated the older `content-*` and `files-answers-*` screenshot filenames locally; those files are current local regression captures, not new production evidence for those earlier releases.
+
+See [the implementation report](WEBMCP_HACKATHON.md) for the changed files, commands and remaining owner tasks. The YouTube video remains unconfigured. The detected GitHub repository returned 404 to an unauthenticated check, so public access and a push of this release remain unverified. The comparison counts are explicitly illustrative. The 407-word recording script targets 2:50, approximately 144 spoken words per minute.
+
 ## Content, media and canvas answers, September 2, 2026
 
 Production deployment `6a98df14f9cdd313abe8ec1f` is live at https://api-canvas-bclonan.netlify.app. The existing Netlify configuration and Vue/Pinia architecture remain in place. See [content workflow notes](CONTENT_WORKFLOWS.md) for changed files, the versioned agent contract, supported players and limits.

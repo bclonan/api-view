@@ -1,5 +1,48 @@
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
+import {
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  ref,
+  watch,
+  defineAsyncComponent,
+  nextTick,
+} from "vue";
+import { routeFor, updateMetadata } from "./site/navigation";
+const DocumentationPage = defineAsyncComponent(
+  () => import("./site/DocumentationPage.vue"),
+);
+const siteRoute = ref(routeFor(location.pathname));
+watch(siteRoute, (value) => updateMetadata(value), { immediate: true });
+function popRoute() {
+  siteRoute.value = routeFor(location.pathname);
+}
+async function siteNavigate(event: MouseEvent) {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  const anchor = (event.target as Element).closest<HTMLAnchorElement>(
+    "a[data-site-link]",
+  );
+  if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+  const url = new URL(anchor.href);
+  if (url.origin !== location.origin) return;
+  event.preventDefault();
+  window.history.pushState({}, "", url.pathname + url.hash);
+  popRoute();
+  await nextTick();
+  if (url.hash) document.getElementById(url.hash.slice(1))?.scrollIntoView();
+  else {
+    window.scrollTo(0, 0);
+    document.getElementById("documentation-main")?.focus();
+  }
+}
 import {
   PanelsTopLeft,
   PanelLeftClose,
@@ -172,6 +215,7 @@ async function doImport() {
   }
 }
 function keyboard(event: KeyboardEvent) {
+  if (siteRoute.value !== "/") return;
   if (
     event.key === "/" &&
     !["INPUT", "TEXTAREA", "SELECT"].includes(
@@ -192,6 +236,8 @@ function keyboard(event: KeyboardEvent) {
 }
 onMounted(async () => {
   if (sharedEncoded) return;
+  document.addEventListener("click", siteNavigate);
+  window.addEventListener("popstate", popRoute);
   refreshTimer = setInterval(() => store.refreshDue(), 15000);
   document.addEventListener("keydown", keyboard);
   const restored = store.restore();
@@ -204,10 +250,13 @@ onBeforeUnmount(() => {
   clearInterval(refreshTimer);
   cleanup?.();
   document.removeEventListener("keydown", keyboard);
+  document.removeEventListener("click", siteNavigate);
+  window.removeEventListener("popstate", popRoute);
 });
 </script>
 <template>
   <ShareView v-if="sharedEncoded" :encoded="sharedEncoded" />
+  <DocumentationPage v-else-if="siteRoute !== '/'" :route="siteRoute" />
   <template v-else>
     <div class="app-shell" :class="{ 'sidebar-collapsed': collapsed }">
       <header class="topbar">
@@ -216,7 +265,10 @@ onBeforeUnmount(() => {
           Canvas<span class="beta">BETA</span></a
         >
         <div class="topbar-center">
-          <span class="tiny muted">YOUR DATA, IN VIEW</span>
+          <nav class="canvas-site-nav" aria-label="Project navigation">
+            <a href="/webmcp" data-site-link>WebMCP</a
+            ><a href="/hackathon" data-site-link>Hackathon</a>
+          </nav>
         </div>
         <button class="agent-status" @click="toolsOpen = true">
           <span
