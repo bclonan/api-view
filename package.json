@@ -9,21 +9,29 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "verify": "npm test && npm run build && npm run test:e2e"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
+    "lint": "eslint src tests *.ts *.js",
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "echarts": "^6.0.0",
+    "fast-xml-parser": "^5.11.1",
+    "linkedom": "^0.18.13",
     "lucide-vue-next": "^0.468.0",
     "pinia": "^3.0.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
+    "eslint": "^10.9.1",
+    "eslint-plugin-vue": "^10.10.0",
     "prettier": "^3.9.6",
     "typescript": "~5.9.0",
+    "typescript-eslint": "^8.69.0",
     "vite": "^7.0.0",
     "vitest": "^3.2.0",
     "vue-tsc": "^3.0.0",

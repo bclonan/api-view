@@ -250,6 +250,10 @@ test("completes missing inputs manually, then duplicates and removes", async ({
     .getByRole("button", { name: "Options for Local weather copy" })
     .click();
   await copy.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(page.locator("article.widget")).toHaveCount(2);
+  await page
+    .getByRole("button", { name: "Confirm remove block", exact: true })
+    .click();
   await expect(page.locator("article.widget")).toHaveCount(1);
 });
 

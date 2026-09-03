@@ -1,3 +1,6 @@
+import { ApiFailure } from "./errors";
+export { ApiFailure, normalizeError } from "./errors";
+import { executeSource } from "../sources/execute";
 import { getOperation } from "../api/registry";
 import { normalize } from "./normalize";
 import { readLocal, writeLocal, pruneLocal } from "./persistence";
@@ -6,7 +9,6 @@ import { requestSlot } from "./requestPolicy";
 import type {
   Row,
   DataMode,
-  NormalizedError,
   ApiDefinition,
   Operation,
 } from "../types";
@@ -87,41 +89,6 @@ export function validateOperationArguments(
     throw new Error("Radius searches need latitude and longitude.");
   return { args, missing };
 }
-export class ApiFailure extends Error {
-  constructor(public detail: NormalizedError) {
-    super(detail.message);
-  }
-}
-export function normalizeError(error: unknown): NormalizedError {
-  if (error instanceof ApiFailure) return error.detail;
-  if (error instanceof DOMException && error.name === "AbortError")
-    return {
-      code: "cancelled",
-      title: "Request cancelled",
-      message: "The request was cancelled. You can retry when ready.",
-    };
-  if (error instanceof DOMException && error.name === "TimeoutError")
-    return {
-      code: "timeout",
-      title: "The source took too long",
-      message: "The request timed out after 20 seconds. Try again.",
-    };
-  if (error instanceof TypeError)
-    return {
-      code: "network",
-      title: "Browser request unavailable",
-      message:
-        "The network request failed. The source may be offline or may not allow browser access. Check your connection, retry, or choose sample data.",
-    };
-  return {
-    code: "invalid",
-    title: "Unable to load this widget",
-    message:
-      error instanceof Error
-        ? error.message
-        : "Unexpected response from the source.",
-  };
-}
 export async function invoke(
   apiId: string,
   operationId: string,
@@ -150,6 +117,7 @@ export async function invokeOperation(
   const { args, missing } = validateOperationArguments(operation, provided);
   if (missing.length) throw new Error(`Missing inputs: ${missing.join(", ")}`);
   signal?.throwIfAborted();
+  if (operation.sourceConfig) return executeSource(api, operation, args, mode, signal, fresh);
   const requestUrl = operation.buildUrl(args);
   const started = performance.now();
   let rawResponse: unknown;

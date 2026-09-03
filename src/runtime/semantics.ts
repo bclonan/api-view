@@ -1,4 +1,4 @@
-import { detectValue } from "./detectValue";
+import { detectValue, isYearField } from "./detectValue";
 import type { SemanticField, SemanticValueType } from "../types";
 
 export const quantitativeTypes = [
@@ -73,7 +73,7 @@ export function semanticDescriptor(
     ],
     [/^npi$/, "npi", values.every((v) => /^\d{10}$/.test(String(v)))],
     [/(^id$|_id$|identifier|^code$)/, "identifier", true],
-    [/^(year|publication_year)$/, "year", numeric],
+    [/./, "year", numeric && isYearField(key)],
     [/(temperature|apparent_temperature)/, "temperature", numeric],
     [/^(mag|magnitude)$/, "magnitude", numeric],
     [/(distance|depth|altitude|elevation)/, "distance", numeric],

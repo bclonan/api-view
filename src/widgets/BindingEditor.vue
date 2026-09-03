@@ -30,7 +30,10 @@ const fieldOptions = computed(() =>
   flattenFields(
     origin.value === "raw"
       ? discoverFields(selectedSource.value?.rawResponse, false)
-      : (selectedSource.value?.result?.fieldTree ?? []),
+      : selectedSource.value
+        ? (store.resultForWidget(selectedSource.value.id).result?.fieldTree ??
+          [])
+        : [],
   ),
 );
 const definition = computed(

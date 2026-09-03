@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 import { pathParts, readPath } from "./fields";
-import { isRow, normalizeData, rowsOf } from "./normalize";
+import { normalizeData, rowsOf } from "./normalize";
 import { detectValue } from "./detectValue";
 import type {
   DataBinding,
@@ -8,6 +8,7 @@ import type {
   Row,
   Widget,
   SemanticValueType,
+  SemanticResult,
 } from "../types";
 const field = { type: "string", maxLength: 500 };
 const name = { type: "string", minLength: 1, maxLength: 120 };
@@ -277,8 +278,25 @@ export function transformData(
         const right = new Map<unknown, Row>();
         for (const row of rowsOf(lookup(step.sourceId!)).slice(0, 5000)) {
           const key = readPath(row, step.rightField);
-          if (!right.has(key)) right.set(key, row);
+          if (key === undefined || key === null || typeof key === "object")
+            throw new Error(
+              `Join key ${step.rightField} must contain scalar identifiers.`,
+            );
+          if (right.has(key))
+            throw new Error(
+              `Duplicate join key ${String(key)}. Group the right source or choose a unique field.`,
+            );
+          right.set(key, row);
         }
+        const keyTypes = new Set([...right.keys()].map((k) => typeof k));
+        if (rows.some((r) => value(r) == null || typeof value(r) === "object"))
+          throw new Error(
+            `Join key ${step.field} is missing or is not a scalar identifier.`,
+          );
+        if (right.size && rows.some((r) => !keyTypes.has(typeof value(r))))
+          throw new Error(
+            "Join key types differ. Choose matching identifier fields.",
+          );
         rows = rows.map((r) => ({
           ...r,
           [step.as ?? "joined"]: right.get(value(r)) ?? null,
@@ -289,7 +307,53 @@ export function transformData(
   }
   return steps.length ? rows : data;
 }
-export function boundResult(widget: Widget, widgets: Widget[]) {
+type BoundResult = {
+  result: SemanticResult | undefined;
+  issues: string[];
+  provenance: {
+    slot: string;
+    sourceId: string;
+    apiId: string;
+    operationId: string;
+    path: string;
+    origin: string;
+    invokedAt?: string;
+    status: string;
+  }[];
+};
+export function dependencies(widget: Widget): string[] {
+  return [
+    ...new Set(
+      [
+        ...(widget.derived?.sourceIds ?? []),
+        ...Object.values(widget.bindings ?? {}).map((b) => b.sourceId),
+        ...(widget.transforms ?? []).map((t) => t.sourceId),
+      ].filter((id): id is string => !!id && id !== widget.id),
+    ),
+  ];
+}
+export function validateGraph(widgets: Widget[]) {
+  const visiting = new Set<string>(),
+    done = new Set<string>();
+  function visit(id: string) {
+    if (visiting.has(id))
+      throw new Error(
+        "This connection would create a circular dependency. Choose an earlier source.",
+      );
+    if (done.has(id)) return;
+    visiting.add(id);
+    const w = widgets.find((w) => w.id === id);
+    if (w) dependencies(w).forEach(visit);
+    visiting.delete(id);
+    done.add(id);
+  }
+  widgets.forEach((w) => visit(w.id));
+}
+export function boundResult(
+  widget: Widget,
+  widgets: Widget[],
+  visited = new Set<string>(),
+): BoundResult {
   const issues: string[] = [];
   const provenance: {
     slot: string;
@@ -301,8 +365,40 @@ export function boundResult(widget: Widget, widgets: Widget[]) {
     invokedAt?: string;
     status: string;
   }[] = [];
-  const own = widget.result;
-  if (!own) return { result: undefined, issues, provenance };
+  if (visited.has(widget.id))
+    return {
+      result: undefined,
+      issues: ["Circular source dependency. Edit the bindings."],
+      provenance,
+    };
+  const next = new Set(visited).add(widget.id);
+  const resolved = new Map<string, SemanticResult | undefined>();
+  function sourceResult(source: Widget): SemanticResult | undefined {
+    if (source.id === widget.id) return source.result;
+    if (!resolved.has(source.id)) {
+      const display = boundResult(source, widgets, next);
+      resolved.set(source.id, display.result);
+      issues.push(...display.issues);
+      provenance.push(...display.provenance);
+    }
+    return resolved.get(source.id);
+  }
+  const anchor = widget.derived
+    ? widgets.find((w) => w.id === widget.derived!.sourceIds[0])
+    : undefined;
+  const own = widget.derived
+    ? anchor
+      ? sourceResult(anchor)
+      : undefined
+    : widget.result;
+  if (!own)
+    return {
+      result: undefined,
+      issues: widget.derived
+        ? [...issues, "A source has no data yet. Load it or edit the bindings."]
+        : issues,
+      provenance,
+    };
   const bindings = widget.bindings ?? {},
     transforms = widget.transforms ?? [];
   if (!Object.keys(bindings).length && !transforms.length)
@@ -337,7 +433,7 @@ export function boundResult(widget: Widget, widgets: Widget[]) {
         ? source.rawResponse
         : row && source.id === widget.id
           ? row
-          : source.result?.data;
+          : sourceResult(source)?.data;
     const value = readPath(root, binding.path);
     if (value === undefined)
       issues.push(`No value at ${binding.path || "$"} in ${source.title}.`);
@@ -345,11 +441,21 @@ export function boundResult(widget: Widget, widgets: Widget[]) {
   }
   try {
     let data = bindings.$data ? resolve(bindings.$data, "$data") : own.data;
-    data = transformData(
-      data,
-      transforms,
-      (sourceId) => sourceFor(sourceId)?.result?.data,
-    );
+    data = transformData(data, transforms, (sourceId) => {
+      const source = sourceFor(sourceId);
+      if (!source) throw new Error(`Source ${sourceId} was removed.`);
+      provenance.push({
+        slot: "transform",
+        sourceId,
+        apiId: source.invocation.apiId,
+        operationId: source.invocation.operationId,
+        path: "$",
+        origin: "data",
+        invokedAt: source.refreshedAt,
+        status: source.status,
+      });
+      return sourceResult(source)?.data;
+    });
     const slots = Object.entries(bindings).filter(([slot]) => slot !== "$data");
     const hints: Record<string, SemanticValueType> = {};
     if (slots.length) {
@@ -376,7 +482,7 @@ export function boundResult(widget: Widget, widgets: Widget[]) {
               ].includes(slot)
                 ? slot
                 : (binding.path
-                    ?.split(/[.\[\]]/)
+                    ?.split(/[.[\]]/)
                     .filter(Boolean)
                     .at(-1) ?? slot),
               value,
@@ -394,7 +500,32 @@ export function boundResult(widget: Widget, widgets: Widget[]) {
         : own.suggestedPresentations[0],
       hints,
     );
-    if (!slots.length && !bindings.$data) result.metadata = own.metadata;
+    result.metadata = {
+      ...own.metadata,
+      bindings: widget.bindings ?? {},
+      transforms,
+      provenance: {
+        sources: provenance,
+        original: own.metadata.provenance ?? null,
+      },
+    };
+    if (widget.derived) result.id = widget.id;
+    const numericUnits = new Set(
+      provenance.flatMap(
+        (p) =>
+          widgets
+            .find((w) => w.id === p.sourceId)
+            ?.result?.fields.filter((f) => f.unit)
+            .map((f) => f.unit) ?? [],
+      ),
+    );
+    if (
+      numericUnits.size > 1 &&
+      transforms.some((t) => ["aggregate", "derive", "group"].includes(t.op))
+    )
+      issues.push(
+        "Sources declare different units. Confirm or convert units before interpreting aggregates.",
+      );
     for (const field of result.fields)
       if (bindings[field.key]?.label) field.label = bindings[field.key].label!;
     return { result, issues: [...new Set(issues)], provenance };

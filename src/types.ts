@@ -57,6 +57,7 @@ export type SemanticValueType =
   | "unknown";
 export type Row = Record<string, unknown>;
 export interface SemanticField {
+  unit?: string;
   key: string;
   label: string;
   type: SemanticValueType;
@@ -113,6 +114,12 @@ export interface SemanticResult {
 // The existing normalized result is the canonical envelope. Raw JSON stays on
 // its request entry so multiple cards can share it without copying payloads.
 export type DataEnvelope = SemanticResult;
+export interface ApiResponse {
+  result: SemanticResult;
+  rawResponse: unknown;
+  requestUrl: string;
+  durationMs: number;
+}
 export type DataMode = "sample" | "live";
 export interface PresentationSpec {
   type: PresentationType;
@@ -121,6 +128,9 @@ export interface PresentationSpec {
   series?: string[];
   fields?: string[];
   props?: {
+    filter?: string;
+    sort?: string;
+    sortDirection?: "asc" | "desc";
     compact?: boolean;
     numberFormat?: "compact" | "standard";
     showSource?: boolean;
@@ -175,6 +185,48 @@ export interface CustomApiConfig {
   responsePath?: string;
   responseSchema?: Row;
   authentication?: "none" | "api-key";
+  format?: SourceFormat;
+  selector?: string;
+  permitted?: boolean;
+  attribution?: string;
+  license?: string;
+  refreshSeconds?: number;
+  pagination?: PaginationConfig;
+  transforms?: DataTransform[];
+}
+export const sourceFormats = [
+  "auto",
+  "json",
+  "csv",
+  "xml",
+  "rss",
+  "atom",
+  "jsonld",
+  "html-table",
+  "embedded-json",
+  "graphql",
+  "openapi",
+  "socrata",
+  "ckan",
+  "arcgis",
+] as const;
+export type SourceFormat = (typeof sourceFormats)[number];
+export interface PaginationConfig {
+  mode: "page" | "offset" | "cursor" | "next";
+  parameter?: string;
+  start?: number;
+  sizeParameter?: string;
+  size?: number;
+  nextPath?: string;
+  maxPages: number;
+}
+export interface TaggedField {
+  sourceId: string;
+  path: string;
+  origin: "raw" | "data";
+  label?: string;
+  tags: string[];
+  unit?: string;
 }
 export interface InputDefinition {
   type: "string" | "number" | "integer" | "date";
@@ -187,6 +239,7 @@ export interface InputDefinition {
   enum?: string[];
 }
 export interface Operation {
+  sourceConfig?: CustomApiConfig;
   id: string;
   title: string;
   description: string;
@@ -235,6 +288,7 @@ export interface NormalizedError {
   retryAfter?: number;
 }
 export interface WidgetInput {
+  derived?: { sourceIds: string[] };
   apiId: string;
   operationId: string;
   arguments: Row;
@@ -246,6 +300,7 @@ export interface WidgetInput {
   transforms?: DataTransform[];
 }
 export interface Widget {
+  derived?: { sourceIds: string[] };
   id: string;
   title: string;
   invocation: {

@@ -1,5 +1,9 @@
 # Verification
 
+## Generic sources and sharing, September 2, 2026
+
+Production deployment `6a988f37c0db89b8ffc83f15` passed lint, type-check, 161 unit tests, the build, and all 20 local and production browser workflows. A separate real-network test passed with the Nobel Prize API and an MDN educational HTML table. Native WebMCP registered 31 tools on production. See [public source release notes](PUBLIC_SOURCES.md) for changed files, supported scope, screenshots and the in-app checks.
+
 ## Semantic public-data branch, September 2, 2026
 
 Branch `codex/semantic-public-data` extends the existing application to 30 sources, 29 presentations and 31 WebMCP tools. The final local `npm run verify` passed 131 unit and renderer tests, TypeScript checks, the production build and 14 Chromium workflows. `git diff --check` passed. Vite still reports the existing lazy chart-library chunk above its 500 KB advisory threshold.

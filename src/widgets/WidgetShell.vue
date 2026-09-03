@@ -10,6 +10,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-vue-next";
+import { useEditor } from "../stores/editor";
 import { useWorkspace } from "../stores/workspace";
 import { getOperation } from "../api/registry";
 import {
@@ -30,11 +31,27 @@ import { rowsOf } from "../runtime/normalize";
 import { download, requestCode } from "../runtime/download";
 const props = defineProps<{ widget: Widget }>();
 const store = useWorkspace();
+const editor = useEditor();
 const display = computed(() => store.resultForWidget(props.widget.id));
 const components = computed(() => compatibleComponents(display.value.result));
 const boundSources = computed(() => [
   ...new Set(display.value.provenance.map((entry) => entry.apiId)),
 ]);
+const freshnessLabel = computed(() => {
+  const times = (
+    props.widget.derived
+      ? display.value.provenance.map((p) => p.invokedAt)
+      : [props.widget.refreshedAt]
+  )
+    .filter((v): v is string => !!v)
+    .map(Date.parse)
+    .filter(Number.isFinite);
+  if (!times.length)
+    return props.widget.derived
+      ? "Waiting for source data"
+      : "Not refreshed yet";
+  return `Updated ${new Date(Math.max(...times)).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+});
 const dataModeLabel = computed(() => {
   const modes = new Set(
     display.value.provenance.map(
@@ -191,7 +208,9 @@ async function setProperty(
           {{
             boundSources.length > 1
               ? `${boundSources.length} sources`
-              : source.api.name
+              : widget.derived
+                ? "Derived block"
+                : source.api.name
           }}<span class="source-dot">·</span>{{ dataModeLabel }}
         </p>
       </div>
@@ -249,7 +268,15 @@ async function setProperty(
             @click="exportData"
           >
             <Download :size="14" /> Export data</button
-          ><button class="danger" @click="store.removeWidget(widget.id)">
+          ><button
+            class="danger"
+            @click="
+              editor.pendingDelete = {
+                widgetId: widget.id,
+                revision: store.revision,
+              }
+            "
+          >
             <Trash2 :size="14" /> Remove
           </button>
         </div>
@@ -297,6 +324,7 @@ async function setProperty(
           Complete the inputs below to load this widget.
         </p>
         <InputForm
+          v-if="!widget.derived"
           :key="JSON.stringify(widget.invocation.arguments)"
           :operation="source.operation"
           :api-id="source.api.id"
@@ -306,6 +334,19 @@ async function setProperty(
         />
       </div>
       <div v-else-if="tab === 'Presentation'" class="presentation-settings">
+        <label
+          >Block title<input
+            :value="widget.title"
+            aria-label="Block title"
+            maxlength="120"
+            @change="
+              store.updateWidget(
+                widget.id,
+                { title: ($event.target as HTMLInputElement).value },
+                false,
+              )
+            "
+        /></label>
         <label
           >Visualization<select
             aria-label="Visualization"
@@ -587,6 +628,17 @@ async function setProperty(
         :fields="display.result.fields"
       />
       <BlockRenderer
+        @settings="
+          store.updateWidget(
+            widget.id,
+            {
+              presentation: {
+                props: { ...widget.presentation.props, ...$event },
+              },
+            },
+            false,
+          )
+        "
         v-else-if="display.result"
         :result="display.result"
         :presentation="widget.presentation"
@@ -616,7 +668,7 @@ async function setProperty(
           : widget.status === "ready"
             ? widget.invocation.mode === "sample"
               ? "Illustrative sample"
-              : `Updated ${new Date(widget.refreshedAt!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+              : freshnessLabel
             : widget.status.replace(/-/g, " ")
       }}</span
       ><button @click="tab = 'Presentation'">

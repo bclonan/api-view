@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { normalize } from "../../src/runtime/normalize";
+import { isYearField, labelFor } from "../../src/runtime/detectValue";
 import { inferStructure } from "../../src/runtime/structure";
 import { compatibleComponents } from "../../src/blocks/definitions";
 import { useWorkspace } from "../../src/stores/workspace";
@@ -19,6 +20,19 @@ beforeEach(() => {
   });
 });
 describe("semantic foundation", () => {
+  it("keeps camel-case and table-header years out of measures and formats them as years", () => {
+    const result = normalize(
+      [{ awardYear: "1901", "Year formed": 1976, yearlyCount: 12 }],
+      generic,
+      "unknown",
+      "live",
+    );
+    expect(result.measures).toEqual(["yearlyCount"]);
+    expect(isYearField("awardYear")).toBe(true);
+    expect(isYearField('["Year formed"]')).toBe(true);
+    expect(isYearField("yearlyCount")).toBe(false);
+    expect(labelFor("awardYear")).toBe("Award Year");
+  });
   it("leaves a retryable card when a planned live request fails", async () => {
     const store = useWorkspace();
     store.mode = "live";

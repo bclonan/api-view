@@ -88,4 +88,13 @@ export const labelFor = (key: string) =>
     temperature_2m: "Temperature",
     relative_humidity_2m: "Humidity",
     wind_speed_10m: "Wind speed",
-  })[key] ?? key.replace(/[_-]/g, " ").replace(/^./, (c) => c.toUpperCase());
+  })[key] ??
+  key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]/g, " ")
+    .replace(/^./, (c) => c.toUpperCase());
+
+export const isYearField = (key: string) =>
+  /(^|[_.\s["-])year($|[_\s"\]-])/.test(
+    key.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase(),
+  );

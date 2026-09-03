@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { detectValue } from "../runtime/detectValue";
+import { computed, ref, watch, inject, type ComputedRef } from "vue";
+import { detectValue, isYearField } from "../runtime/detectValue";
 import type { SemanticValueType } from "../types";
 const props = defineProps<{
   value: unknown;
@@ -13,6 +13,10 @@ const type = computed(
     detectValue({ key: props.fieldKey, value: props.value }).type,
 );
 const failedImage = ref(false);
+const currency = inject<ComputedRef<string>>(
+  "api-canvas-currency",
+  computed(() => ""),
+);
 const safeUrl = computed(() => {
   try {
     const url = new URL(String(props.value));
@@ -42,13 +46,14 @@ const formatted = computed(() => {
     return v;
   if (type.value === "currency")
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+      ...(currency.value
+        ? ({ style: "currency", currency: currency.value } as const)
+        : {}),
       maximumFractionDigits: 2,
     }).format(Number(v));
   if (type.value === "percent") return `${Number(v).toLocaleString()}%`;
   if (type.value === "number" || type.value === "integer")
-    return /(^year$|_year$)/.test(props.fieldKey ?? "")
+    return isYearField(props.fieldKey ?? "")
       ? String(v)
       : Number(v).toLocaleString("en-US", { maximumFractionDigits: 3 });
   if (type.value === "date")

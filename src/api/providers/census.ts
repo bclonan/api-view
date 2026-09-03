@@ -1,4 +1,4 @@
-import { defineApi, queryUrl } from "../defineApi";
+import { defineApi } from "../defineApi";
 export default defineApi({
   id: "census",
   name: "U.S. Census",

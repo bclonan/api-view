@@ -4,7 +4,12 @@ import ModalDialog from "../components/ModalDialog.vue";
 import BlockRenderer from "../blocks/BlockRenderer.vue";
 import JsonBlock from "../blocks/JsonBlock.vue";
 import { useWorkspace } from "../stores/workspace";
-import type { CustomApiConfig, SemanticResult } from "../types";
+import {
+  sourceFormats,
+  type SourceFormat,
+  type CustomApiConfig,
+  type SemanticResult,
+} from "../types";
 const props = defineProps<{ definition?: CustomApiConfig }>();
 const emit = defineEmits<{ close: []; saved: [apiId: string] }>();
 const store = useWorkspace();
@@ -15,7 +20,22 @@ const endpoint = ref(props.definition?.endpoint ?? "/records");
 const method = ref<CustomApiConfig["method"]>(
   props.definition?.method ?? "GET",
 );
-const responsePath = ref(props.definition?.responsePath ?? "records");
+const responsePath = ref(
+  props.definition ? (props.definition.responsePath ?? "") : "records",
+);
+const format = ref<SourceFormat>(props.definition?.format ?? "auto"),
+  selector = ref(props.definition?.selector ?? ""),
+  permitted = ref(props.definition?.permitted ?? false),
+  attribution = ref(props.definition?.attribution ?? ""),
+  license = ref(props.definition?.license ?? ""),
+  refreshSeconds = ref(props.definition?.refreshSeconds ?? 300);
+const pagination = ref(
+    props.definition?.pagination
+      ? JSON.stringify(props.definition.pagination, null, 2)
+      : "",
+  ),
+  transforms = ref(JSON.stringify(props.definition?.transforms ?? [], null, 2));
+const sensitiveConfirmed = ref(false);
 const inputs = ref(JSON.stringify(props.definition?.inputs ?? {}, null, 2));
 const query = ref(JSON.stringify(props.definition?.query ?? {}, null, 2));
 const headers = ref(JSON.stringify(props.definition?.headers ?? {}, null, 2));
@@ -67,12 +87,24 @@ const configuration = computed<CustomApiConfig>(() => ({
   sampleResponse: JSON.parse(sample.value),
   ...(schema.value.trim() ? { responseSchema: JSON.parse(schema.value) } : {}),
   authentication: authentication.value,
+  format: format.value,
+  selector: selector.value || undefined,
+  permitted: permitted.value,
+  attribution: attribution.value,
+  license: license.value,
+  refreshSeconds: refreshSeconds.value,
+  pagination: pagination.value.trim()
+    ? JSON.parse(pagination.value)
+    : undefined,
+  transforms: JSON.parse(transforms.value),
 }));
 async function test(mode: "sample" | "live") {
   busy.value = true;
   error.value = "";
   preview.value = undefined;
   try {
+    if (mode === "live" && method.value !== "GET" && !sensitiveConfirmed.value)
+      throw new Error("Confirm the live request before sending this method.");
     const result = await store.testCustomApi(
       configuration.value,
       JSON.parse(testArgs.value),
@@ -101,7 +133,7 @@ function save() {
     @close="emit('close')"
   >
     <p>
-      Configure a JSON endpoint or paste local data as a sample response. Both
+      Configure a public endpoint or paste local data as a sample response. Both
       use the same fields, bindings, and components.
     </p>
     <div class="form-grid">
@@ -137,6 +169,51 @@ function save() {
           placeholder="results, data.items, or blank for the whole response"
       /></label>
     </div>
+    <details class="custom-settings">
+      <summary>Source format, refresh, and mapping</summary>
+      <div class="form-grid">
+        <label
+          >Source format<select v-model="format">
+            <option v-for="f in sourceFormats" :key="f" :value="f">
+              {{ f }}
+            </option>
+          </select></label
+        ><label>CSS selector<input v-model="selector" maxlength="500" /></label
+        ><label
+          >Refresh interval in seconds<input
+            v-model.number="refreshSeconds"
+            type="number"
+            min="30"
+            max="86400" /></label
+        ><label
+          >Attribution<input v-model="attribution" maxlength="500" /></label
+        ><label>License<input v-model="license" maxlength="200" /></label>
+      </div>
+      <label class="check-label"
+        ><input v-model="permitted" type="checkbox" />I have permission to read
+        and reuse this webpage's structured data</label
+      >
+      <label class="stacked-field"
+        >Pagination settings<textarea
+          v-model="pagination"
+          aria-label="Pagination JSON"
+          rows="4"
+          placeholder='{"mode":"page","parameter":"page","start":1,"maxPages":3}'
+        />
+      </label>
+      <p class="tiny muted">
+        Use page, offset, cursor, or next. Requests stop after five pages.
+        Cursor and next modes require nextPath. Automatic refresh only sends GET
+        while this tab is visible.
+      </p>
+      <label class="stacked-field"
+        >Source transform steps<textarea
+          v-model="transforms"
+          aria-label="Source transforms JSON"
+          rows="4"
+        />
+      </label>
+    </details>
     <label class="stacked-field"
       >Sample response<textarea
         v-model="sample"
@@ -216,6 +293,10 @@ function save() {
         Live tests send a {{ method }} request directly to the configured URL.
         The endpoint must allow browser access. Samples make no network request.
       </p>
+      <label v-if="method !== 'GET'" class="check-label"
+        ><input v-model="sensitiveConfirmed" type="checkbox" />I approve sending
+        this {{ method }} request to this endpoint</label
+      >
       <div class="button-row">
         <button class="button" :disabled="busy" @click="test('sample')">
           Preview sample</button

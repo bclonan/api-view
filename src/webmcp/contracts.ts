@@ -1,3 +1,4 @@
+import { workspaceContracts } from "./workspaceTools";
 import { presentations } from "../types";
 import { bindingsSchema, transformsSchema } from "../runtime/bindings";
 import { customApiSchema } from "../api/custom";
@@ -47,6 +48,9 @@ const mapping = object({
     maxItems: 30,
   },
   props: object({
+    filter: { type: "string", maxLength: 500 },
+    sort: { type: "string", maxLength: 500 },
+    sortDirection: { enum: ["asc", "desc"] },
     compact: { type: "boolean" },
     numberFormat: { enum: ["compact", "standard"] },
     showSource: { type: "boolean" },
@@ -67,6 +71,7 @@ const widget = object(
   ["apiId", "operationId", "arguments"],
 );
 export const contracts = [
+  ...workspaceContracts,
   {
     name: "propose_api",
     description:

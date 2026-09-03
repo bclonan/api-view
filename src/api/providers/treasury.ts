@@ -44,6 +44,7 @@ export default defineApi({
         debt_held_public_amt: "currency",
       },
       preferred: "line-chart",
+      metadata: () => ({ currency: "USD" }),
     },
   ],
 });

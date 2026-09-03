@@ -18,6 +18,33 @@ const render = (data: unknown, type: PresentationType) =>
     }),
   );
 describe("generic renderers", () => {
+  it("does not invent USD for an amount and retains explicitly supplied currency", async () => {
+    const unknown = await render({ prizeAmount: 150782 }, "metric");
+    expect(unknown).not.toContain("$");
+    const table = await render([{ prizeAmount: 150782 }], "table");
+    expect(table).toContain("150,782");
+    expect(table).not.toContain("$150");
+    const result = normalize(
+      [{ amount: 125 }],
+      {
+        id: "currency",
+        title: "Amount",
+        description: "Declared currency",
+        inputs: {},
+        endpoint: "https://example.org/data",
+        buildUrl: () => "https://example.org/data",
+        sample: () => [],
+        extract: (value) => value,
+        metadata: () => ({ currency: "EUR" }),
+      },
+      "test",
+      "sample",
+    );
+    const html = await renderToString(
+      createSSRApp(BlockRenderer, { result, presentation: { type: "table" } }),
+    );
+    expect(html).toContain("€125.00");
+  });
   it("keeps document summaries readable while retaining nested metadata in other views", async () => {
     const data = [
       {

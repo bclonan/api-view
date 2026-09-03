@@ -4,6 +4,8 @@ A local-first workspace that turns public API responses into charts, maps, recor
 
 Live app: [api-canvas-bclonan.netlify.app](https://api-canvas-bclonan.netlify.app). See [verification notes](docs/VERIFICATION.md) for the production smoke test and browser limitations.
 
+The [public source and connected block guide](docs/PUBLIC_SOURCES.md) covers generic API and webpage adapters, field mappings, derived blocks, clean sharing and the latest release checks.
+
 ## Run it
 
 Requires Node.js 22.12 or newer.
@@ -20,7 +22,7 @@ npm run verify
 npm run preview
 ```
 
-`verify` runs the unit and renderer tests, TypeScript checks, production build, and browser tests. The browser suite uses Playwright Chromium. On a new machine, install its browser with `npx playwright install chromium`.
+`verify` runs lint, unit and renderer tests, TypeScript checks, the production build, and browser tests. The browser suite uses Playwright Chromium. On a new machine, install its browser with `npx playwright install chromium`. The optional `npx playwright test --config playwright.live.config.ts` checks the production site with real public API and HTML responses.
 
 ## Semantic public-data branch
 

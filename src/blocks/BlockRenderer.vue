@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from "vue";
-import {
-  CloudSun,
-  Droplets,
-  Wind,
-  ImageOff,
-  ExternalLink,
-  BookOpen,
-} from "lucide-vue-next";
+import { computed, defineAsyncComponent, provide } from "vue";
+import { CloudSun, Droplets, Wind, ImageOff, BookOpen } from "lucide-vue-next";
 import { rowsOf, isRow, numericTypes, numberOf } from "../runtime/normalize";
 import { readPath } from "../runtime/fields";
 import ValueRenderer from "../values/ValueRenderer.vue";
@@ -20,7 +13,9 @@ import type { SemanticResult, PresentationSpec, Row } from "../types";
 const props = defineProps<{
   result: SemanticResult;
   presentation: PresentationSpec;
+  readonly?: boolean;
 }>();
+const emit = defineEmits<{ settings: [value: PresentationSpec["props"]] }>();
 const type = computed(() =>
   props.presentation.type === "auto"
     ? props.result.suggestedPresentations[0]
@@ -34,6 +29,16 @@ const rows = computed(() =>
     ),
   })),
 );
+const currency = computed(() => {
+  const codes = rows.value.map((row) => row.currency);
+  const code =
+    props.result.metadata.currency ??
+    (codes.length && codes.every((value) => value === codes[0])
+      ? codes[0]
+      : "");
+  return typeof code === "string" && /^[A-Z]{3}$/.test(code) ? code : "";
+});
+provide("api-canvas-currency", currency);
 const fields = computed(() =>
   props.presentation.fields !== undefined
     ? props.presentation.fields.flatMap((key) =>
@@ -43,7 +48,7 @@ const fields = computed(() =>
       ? props.result.fields
           .filter(
             (f) =>
-              !/[.\[]/.test(f.key) &&
+              !/[.[]/.test(f.key) &&
               [
                 "title",
                 "person",
@@ -115,8 +120,8 @@ const metric = computed(() => {
         ? "standard"
         : "compact",
     maximumFractionDigits: 2,
-    ...(yType.value === "currency"
-      ? ({ style: "currency", currency: "USD" } as const)
+    ...(yType.value === "currency" && currency.value
+      ? ({ style: "currency", currency: currency.value } as const)
       : {}),
   }).format(numberOf(n));
 });
@@ -216,7 +221,14 @@ const datedRows = computed(() =>
     <p>Try a broader search or different inputs.</p>
   </div>
   <JsonBlock v-else-if="type === 'json'" :value="result.data" />
-  <TableBlock v-else-if="type === 'table'" :rows="rows" :fields="fields" />
+  <TableBlock
+    :settings="presentation.props"
+    :readonly="readonly"
+    @settings="emit('settings', $event)"
+    v-else-if="type === 'table'"
+    :rows="rows"
+    :fields="fields"
+  />
   <StructuredBlock
     v-else-if="['comparison', 'calendar', 'graph'].includes(type)"
     :kind="type"
@@ -232,6 +244,9 @@ const datedRows = computed(() =>
       y-field="count"
       type="bar-chart"
     /><TableBlock
+      :settings="presentation.props"
+      :readonly="readonly"
+      @settings="emit('settings', $event)"
       :rows="histogram"
       :fields="[
         { key: 'range', label: 'Range', type: 'text', confidence: 1 },
@@ -315,7 +330,7 @@ const datedRows = computed(() =>
       <span>{{ result.fields.find((f) => f.key === yField)?.label }}</span
       ><span
         >{{ rows.length }} records{{
-          yType === "currency" ? " · USD" : ""
+          yType === "currency" && currency ? ` · ${currency}` : ""
         }}</span
       >
     </div>
@@ -482,6 +497,12 @@ const datedRows = computed(() =>
       This data does not fit the selected view. Choose another visualization or
       map compatible fields.
     </p>
-    <TableBlock :rows="rows" :fields="fields" />
+    <TableBlock
+      :settings="presentation.props"
+      :readonly="readonly"
+      @settings="emit('settings', $event)"
+      :rows="rows"
+      :fields="fields"
+    />
   </div>
 </template>

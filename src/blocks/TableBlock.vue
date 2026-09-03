@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import ValueRenderer from "../values/ValueRenderer.vue";
 import { readPath } from "../runtime/fields";
-import type { Row, SemanticField } from "../types";
+import type { Row, SemanticField, PresentationSpec } from "../types";
 import { download } from "../runtime/download";
 function exportCsv() {
   const cell = (v: unknown) =>
@@ -22,11 +22,34 @@ function exportCsv() {
     "text/csv;charset=utf-8",
   );
 }
-const props = defineProps<{ rows: Row[]; fields: SemanticField[] }>();
-const sort = ref("");
-const direction = ref(1);
+const props = defineProps<{
+  rows: Row[];
+  fields: SemanticField[];
+  settings?: PresentationSpec["props"];
+  readonly?: boolean;
+}>();
+const emit = defineEmits<{ settings: [value: PresentationSpec["props"]] }>();
+const sort = ref(props.settings?.sort ?? "");
+const direction = ref(props.settings?.sortDirection === "desc" ? -1 : 1);
 const page = ref(0);
-const filter = ref("");
+const filter = ref(props.settings?.filter ?? "");
+watch([filter, sort, direction], () => {
+  if (!props.readonly)
+    emit("settings", {
+      filter: filter.value,
+      sort: sort.value,
+      sortDirection: direction.value === 1 ? "asc" : "desc",
+    });
+});
+watch(
+  () => props.settings,
+  (value) => {
+    filter.value = value?.filter ?? "";
+    sort.value = value?.sort ?? "";
+    direction.value = value?.sortDirection === "desc" ? -1 : 1;
+  },
+  { deep: true },
+);
 const filtered = computed(() =>
   props.rows
     .filter(
@@ -62,10 +85,15 @@ function changeSort(key: string) {
 </script>
 <template>
   <div class="data-table">
-    <button class="text-button" @click="exportCsv">Export CSV</button>
-    <label class="table-search"
+    <button v-if="!readonly" class="text-button" @click="exportCsv">
+      Export CSV
+    </button>
+    <label v-if="!readonly" class="table-search"
       ><span>Filter rows</span
-      ><input v-model="filter" placeholder="Find in this data..."
+      ><input
+        v-model="filter"
+        maxlength="500"
+        placeholder="Find in this data..."
     /></label>
     <div class="table-scroll">
       <table>
@@ -82,7 +110,8 @@ function changeSort(key: string) {
                   : 'none'
               "
             >
-              <button @click="changeSort(field.key)">
+              <span v-if="readonly">{{ field.label }}</span>
+              <button v-else @click="changeSort(field.key)">
                 {{ field.label }}
                 <span>{{
                   sort === field.key ? (direction === 1 ? "↑" : "↓") : "↕"

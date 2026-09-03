@@ -3,6 +3,13 @@ import { pathParts, readPath } from "../runtime/fields";
 import type { ApiDefinition, CustomApiConfig, Row } from "../types";
 import { publicUrl } from "../runtime/requestPolicy";
 import { inferStructure } from "../runtime/structure";
+import { sourceFormats } from "../types";
+import {
+  transformsSchema,
+  transformData,
+  validateDataSettings,
+} from "../runtime/bindings";
+import { assertPublicSettings, publicSourceUrl } from "../sources/security";
 export const customApiSchema = {
   type: "object",
   additionalProperties: false,
@@ -48,6 +55,27 @@ export const customApiSchema = {
     responsePath: { type: "string", maxLength: 500 },
     responseSchema: { type: "object" },
     authentication: { enum: ["none", "api-key"] },
+    format: { enum: [...sourceFormats] },
+    selector: { type: "string", maxLength: 300 },
+    permitted: { type: "boolean" },
+    attribution: { type: "string", maxLength: 500 },
+    license: { type: "string", maxLength: 500 },
+    refreshSeconds: { type: "integer", minimum: 30, maximum: 86400 },
+    transforms: transformsSchema,
+    pagination: {
+      type: "object",
+      additionalProperties: false,
+      required: ["mode", "maxPages"],
+      properties: {
+        mode: { enum: ["page", "offset", "cursor", "next"] },
+        parameter: { type: "string", maxLength: 100 },
+        start: { type: "integer", minimum: 0 },
+        sizeParameter: { type: "string", maxLength: 100 },
+        size: { type: "integer", minimum: 1, maximum: 1000 },
+        nextPath: { type: "string", maxLength: 500 },
+        maxPages: { type: "integer", minimum: 1, maximum: 5 },
+      },
+    },
   },
 };
 const ajv = new Ajv({ strict: false, allowUnionTypes: true });
@@ -63,6 +91,33 @@ export function compileCustomApi(input: unknown): {
   if (JSON.stringify(input).length > 500000)
     throw new Error("An API definition must be under 500 KB.");
   const config = JSON.parse(JSON.stringify(input)) as CustomApiConfig;
+  assertPublicSettings({
+    baseUrl: config.baseUrl,
+    endpoint: config.endpoint,
+    query: config.query,
+    headers: config.headers,
+    body: config.body,
+    inputs: config.inputs,
+  });
+  validateDataSettings({}, config.transforms);
+  if (config.pagination && config.method !== "GET")
+    throw new Error(
+      "Automatic pagination is available for public GET sources only.",
+    );
+  if (
+    config.pagination &&
+    ["cursor", "next"].includes(config.pagination.mode) &&
+    !config.pagination.nextPath
+  )
+    throw new Error("Cursor and next-link pagination need a next-value path.");
+  if (config.pagination?.nextPath) pathParts(config.pagination.nextPath);
+  if (
+    config.format === "graphql" &&
+    /\b(mutation|subscription)\b/.test(
+      JSON.stringify(config.body ?? config.query ?? {}),
+    )
+  )
+    throw new Error("This GraphQL adapter supports read queries only.");
   const base = publicUrl(config.baseUrl);
   if (
     !["https:", "http:"].includes(base.protocol) ||
@@ -110,13 +165,14 @@ export function compileCustomApi(input: unknown): {
     inputs: config.inputs ?? {},
     endpoint: new URL(config.endpoint, base).href,
     method: config.method,
+    sourceConfig: config,
     buildUrl: (args) => {
       const url = new URL(template(config.endpoint, args, true), base);
       if (url.origin !== base.origin)
         throw new Error("The endpoint must stay on the configured API origin.");
       for (const [key, value] of Object.entries(config.query ?? {}))
         url.searchParams.set(key, template(value, args));
-      return url.href;
+      return publicSourceUrl(url.href).href;
     },
     buildRequest: (args) => ({
       headers: Object.fromEntries(
@@ -131,9 +187,12 @@ export function compileCustomApi(input: unknown): {
     }),
     sample: () => structuredClone(config.sampleResponse),
     extract: (raw) =>
-      config.responsePath
-        ? readPath(raw, config.responsePath)
-        : inferStructure(raw).data,
+      transformData(
+        config.responsePath
+          ? readPath(raw, config.responsePath)
+          : inferStructure(raw).data,
+        config.transforms ?? [],
+      ),
     collectionPath: config.responsePath || undefined,
     responseSchema: config.responseSchema,
   };

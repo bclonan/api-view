@@ -14,8 +14,15 @@ import {
   normalizeError,
   invokeOperation,
 } from "../runtime/invoke";
-import { boundResult, validateDataSettings } from "../runtime/bindings";
-import { discoverFields, readPath } from "../runtime/fields";
+import {
+  boundResult,
+  validateDataSettings,
+  validateGraph,
+  dependencies,
+} from "../runtime/bindings";
+import { stableId } from "../sources/security";
+import type { TaggedField } from "../types";
+import { discoverFields, readPath, pathParts } from "../runtime/fields";
 import {
   readLocal,
   readLocalEntries,
@@ -45,6 +52,7 @@ export const useWorkspace = defineStore("workspace", () => {
   const widgets = ref<Widget[]>([]);
   const mode = ref<DataMode>("sample");
   const revision = ref(0);
+  const fieldSelections = ref<TaggedField[]>([]);
   const notice = ref("");
   const savedOnDevice = ref(true);
   const createdAt = ref(new Date().toISOString());
@@ -233,6 +241,16 @@ export const useWorkspace = defineStore("workspace", () => {
     presentation?: PresentationSpec,
   ) {
     const original = getWidget(widgetId);
+    if (original.derived)
+      return createDerived({
+        sourceIds: original.derived.sourceIds,
+        title: `${original.title} copy`.slice(0, 120),
+        bindings: original.bindings,
+        transforms: original.transforms,
+        presentation: presentation ?? original.presentation,
+        width: original.width,
+        key: crypto.randomUUID(),
+      });
     if (!original.result)
       throw new Error("Load data before duplicating a card.");
     return addCard(original.result.id, {
@@ -307,6 +325,7 @@ export const useWorkspace = defineStore("workspace", () => {
   function exportWorkspace() {
     return {
       version: 1,
+      fieldSelections: fieldSelections.value,
       id: id.value,
       title: title.value,
       layout: { columns: 12 },
@@ -326,6 +345,7 @@ export const useWorkspace = defineStore("workspace", () => {
         presentation: w.presentation.type,
         mapping: w.presentation,
         width: w.width,
+        derived: w.derived,
         bindings: w.bindings,
         transforms: w.transforms,
       })),
@@ -371,6 +391,8 @@ export const useWorkspace = defineStore("workspace", () => {
     id.value = crypto.randomUUID();
     title.value = name.trim().slice(0, 120) || "Untitled dashboard";
     widgets.value = [];
+    fieldSelections.value = [];
+    selectedIds.value = [];
     createdAt.value = new Date().toISOString();
     cleared.value = undefined;
     touch();
@@ -447,6 +469,16 @@ export const useWorkspace = defineStore("workspace", () => {
     const custom = definitions
       .find((a) => a.id === input.apiId)
       ?.operations.find((o) => o.id === input.operationId);
+    if (
+      input.derived &&
+      (!Array.isArray(input.derived.sourceIds) ||
+        !input.derived.sourceIds.length ||
+        input.derived.sourceIds.length > 12 ||
+        input.derived.sourceIds.some(
+          (id) => typeof id !== "string" || id.length > 120,
+        ))
+    )
+      throw new Error("Derived source IDs must name 1 to 12 existing cards.");
     const valid = custom
       ? validateOperationArguments(custom, input.arguments)
       : validateArguments(input.apiId, input.operationId, input.arguments);
@@ -464,7 +496,7 @@ export const useWorkspace = defineStore("workspace", () => {
       throw new Error("Title must be at most 120 characters.");
     return valid;
   }
-  function insertWidget(input: WidgetInput) {
+  function insertWidget(input: WidgetInput, requestedId?: string) {
     if (widgets.value.length >= 40)
       throw new Error("A workspace can contain up to 40 widgets.");
     const { args, missing } = validateInput(input);
@@ -472,7 +504,8 @@ export const useWorkspace = defineStore("workspace", () => {
     const selected = input.presentation ?? "auto";
     const intended = selected === "auto" ? operation.preferred : selected;
     const w: Widget = {
-      id: crypto.randomUUID(),
+      id: requestedId ?? crypto.randomUUID(),
+      derived: input.derived,
       title: input.title ?? operation.title,
       invocation: {
         apiId: input.apiId,
@@ -519,6 +552,11 @@ export const useWorkspace = defineStore("workspace", () => {
   ) {
     signal?.throwIfAborted();
     const w = getWidget(widgetId);
+    if (w.derived) {
+      w.status = "ready";
+      w.error = undefined;
+      return summary(w);
+    }
     requests.get(widgetId)?.abort();
     const controller = new AbortController();
     requests.set(widgetId, controller);
@@ -571,9 +609,13 @@ export const useWorkspace = defineStore("workspace", () => {
     }
     return summary(w);
   }
-  async function createWidget(input: WidgetInput, signal?: AbortSignal) {
+  async function createWidget(
+    input: WidgetInput,
+    signal?: AbortSignal,
+    requestedId?: string,
+  ) {
     signal?.throwIfAborted();
-    const widgetId = insertWidget(input);
+    const widgetId = insertWidget(input, requestedId);
     await refreshWidget(widgetId, signal);
     return summary(getWidget(widgetId));
   }
@@ -596,7 +638,7 @@ export const useWorkspace = defineStore("workspace", () => {
     )
       throw new Error("Title must be at most 120 characters.");
     if (input.title) title.value = input.title;
-    const ids = input.widgets.map(insertWidget);
+    const ids = input.widgets.map(w=>insertWidget(w));
     await Promise.all(ids.map((widgetId) => refreshWidget(widgetId, signal)));
     return getWorkspace();
   }
@@ -617,8 +659,23 @@ export const useWorkspace = defineStore("workspace", () => {
       p.props &&
       (!isRow(p.props) ||
         Object.keys(p.props).some(
-          (key) => !["compact", "numberFormat", "showSource"].includes(key),
+          (key) =>
+            ![
+              "compact",
+              "numberFormat",
+              "showSource",
+              "filter",
+              "sort",
+              "sortDirection",
+            ].includes(key),
         ) ||
+        (p.props.filter !== undefined &&
+          (typeof p.props.filter !== "string" ||
+            p.props.filter.length > 500)) ||
+        (p.props.sort !== undefined &&
+          (typeof p.props.sort !== "string" || p.props.sort.length > 500)) ||
+        (p.props.sortDirection !== undefined &&
+          !["asc", "desc"].includes(p.props.sortDirection)) ||
         (p.props.compact !== undefined &&
           typeof p.props.compact !== "boolean") ||
         (p.props.showSource !== undefined &&
@@ -730,6 +787,15 @@ export const useWorkspace = defineStore("workspace", () => {
         !widgets.value.some((source) => source.id === binding.sourceId)
       )
         throw new Error("Binding source not found. Read the workspace first.");
+    const candidate = {
+      ...w,
+      bindings: patch.bindings ?? w.bindings,
+      transforms: patch.transforms ?? w.transforms,
+    };
+    for (const dependency of dependencies(candidate)) getWidget(dependency);
+    validateGraph(
+      widgets.value.map((item) => (item.id === w.id ? candidate : item)),
+    );
     const changed =
       JSON.stringify(args) !== JSON.stringify(w.invocation.arguments) ||
       (patch.mode !== undefined && patch.mode !== w.invocation.mode);
@@ -797,6 +863,7 @@ export const useWorkspace = defineStore("workspace", () => {
       title: w.title,
       ...w.invocation,
       presentation: w.presentation,
+      derived: w.derived,
       bindings: w.bindings,
       transforms: w.transforms,
       width: w.width,
@@ -877,6 +944,14 @@ export const useWorkspace = defineStore("workspace", () => {
   }
   function defineCustomApi(value: unknown) {
     const compiled = compileCustomApi(value);
+    if (
+      JSON.stringify(customApis.find((a) => a.id === compiled.config.id)) ===
+      JSON.stringify(compiled.config)
+    )
+      return {
+        apiId: compiled.api.id,
+        operationId: compiled.api.operations[0].id,
+      };
     for (const dashboard of savedDashboards.value)
       for (const widget of dashboard.widgets.filter(
         (w) => w.apiId === compiled.api.id,
@@ -930,6 +1005,8 @@ export const useWorkspace = defineStore("workspace", () => {
           `Custom API ${config.id} already exists with different settings. Give the imported API a different ID.`,
         );
     }
+    if (value.fieldSelections !== undefined)
+      validateSelections(value.fieldSelections as TaggedField[], false);
     value.widgets.forEach(
       (input: WidgetInput & { mapping?: PresentationSpec }) => {
         validateInput(
@@ -938,6 +1015,17 @@ export const useWorkspace = defineStore("workspace", () => {
         );
         if (input.mapping) validatePresentation(input.mapping, {} as Widget);
       },
+    );
+    validateGraph(
+      value.widgets.map((w: any) => ({
+        ...w,
+        invocation: {
+          apiId: w.apiId,
+          operationId: w.operationId,
+          arguments: w.arguments,
+          mode: w.mode,
+        },
+      })),
     );
     const ids = value.widgets.map((w: any) => w.id).filter(Boolean);
     if (
@@ -957,6 +1045,8 @@ export const useWorkspace = defineStore("workspace", () => {
     stopRequests();
     widgets.value = [];
     title.value = snapshot.title;
+    fieldSelections.value = snapshot.fieldSelections ?? [];
+    selectedIds.value = [];
     if (preserveId)
       id.value =
         typeof snapshot.id === "string" &&
@@ -973,6 +1063,7 @@ export const useWorkspace = defineStore("workspace", () => {
       if (input.mapping) widget.presentation = input.mapping;
       if (input.id) widget.id = input.id;
     }
+    validateGraph(widgets.value);
     cleared.value = undefined;
     loadingWorkspace = false;
     touch();
@@ -1051,7 +1142,141 @@ export const useWorkspace = defineStore("workspace", () => {
         "The saved workspace could not be restored. You can start a new one or import an export.";
     }
   }
+  function validateSelections(fields: TaggedField[], requireSources = true) {
+    if (!Array.isArray(fields) || fields.length > 100)
+      throw new Error("Select up to 100 fields.");
+    fields.forEach((f) => {
+      if (
+        !f ||
+        typeof f.sourceId !== "string" ||
+        !["raw", "data"].includes(f.origin) ||
+        typeof f.path !== "string" ||
+        !Array.isArray(f.tags) ||
+        f.tags.length > 10 ||
+        f.tags.some((t) => typeof t !== "string" || t.length > 40) ||
+        (f.label !== undefined &&
+          (typeof f.label !== "string" || f.label.length > 120)) ||
+        (f.unit !== undefined &&
+          (typeof f.unit !== "string" || f.unit.length > 40))
+      )
+        throw new Error(
+          "Invalid field selection. Supply source, path, origin and short tags.",
+        );
+      pathParts(f.path);
+      if (requireSources) getWidget(f.sourceId);
+    });
+  }
+  function selectFields(fields: TaggedField[]) {
+    validateSelections(fields);
+    fieldSelections.value = JSON.parse(JSON.stringify(fields));
+    touch();
+    return fieldSelections.value;
+  }
+  function createDerived(options: {
+    sourceIds: string[];
+    title?: string;
+    bindings?: Record<string, DataBinding>;
+    transforms?: DataTransform[];
+    presentation?: PresentationSpec;
+    width?: number;
+    key?: string;
+  }) {
+    if (!options.sourceIds.length || options.sourceIds.length > 12)
+      throw new Error("Choose 1 to 12 source cards.");
+    const sources = options.sourceIds.map(getWidget),
+      anchor = sources[0];
+    const units = new Set(
+      fieldSelections.value
+        .filter((f) => options.sourceIds.includes(f.sourceId) && f.unit)
+        .map((f) => f.unit),
+    );
+    if (
+      units.size > 1 &&
+      options.transforms?.some(
+        (t) =>
+          ["aggregate", "derive", "group"].includes(t.op) &&
+          t.method !== "count",
+      )
+    )
+      throw new Error(
+        "Selected fields use different units. Convert the source values and update their unit tags before combining measures.",
+      );
+    const bindings = options.bindings ?? {
+      $data: { sourceId: anchor.id, path: "$", origin: "data" as const },
+    };
+    if (!Object.keys(bindings).length)
+      throw new Error(
+        "A derived block needs at least one field or dataset binding.",
+      );
+    const blockId = stableId("derived", {
+      dashboard: id.value,
+      ...options,
+      bindings,
+    });
+    const existing = widgets.value.find((w) => w.id === blockId);
+    if (existing) return summary(existing);
+    const input: WidgetInput = {
+      ...anchor.invocation,
+      arguments: anchor.invocation.arguments,
+      title: options.title ?? "Combined data",
+      bindings,
+      transforms: options.transforms,
+      presentation: options.presentation?.type ?? "auto",
+      width: options.width ?? 6,
+      derived: { sourceIds: [...new Set(options.sourceIds)] },
+    };
+    validateInput(input);
+    if (options.presentation)
+      validatePresentation(options.presentation, {} as Widget);
+    const candidate: Widget = {
+      id: blockId,
+      title: input.title!,
+      invocation: anchor.invocation,
+      presentation: options.presentation ?? { type: "auto" },
+      width: input.width!,
+      status: "ready",
+      missingInputs: [],
+      createdAt: new Date().toISOString(),
+      derived: input.derived,
+      bindings,
+      transforms: options.transforms,
+    };
+    dependencies(candidate).forEach(getWidget);
+    validateGraph([...widgets.value, candidate]);
+    if (widgets.value.length >= 40)
+      throw new Error("A workspace can contain up to 40 widgets.");
+    widgets.value.push(candidate);
+    touch();
+    return summary(candidate);
+  }
+  const refreshAttempts = new Map<string, number>();
+  function refreshDue() {
+    if (document.visibilityState !== "visible") return;
+    for (const w of widgets.value) {
+      const config = customApis.find((a) => a.id === w.invocation.apiId);
+      if (
+        !w.derived &&
+        config?.refreshSeconds &&
+        config.method === "GET" &&
+        w.invocation.mode === "live" &&
+        !requests.has(w.id) &&
+        Date.now() -
+          Math.max(
+            refreshAttempts.get(w.id) ?? 0,
+            Date.parse(w.refreshedAt ?? w.createdAt),
+          ) >=
+          config.refreshSeconds * 1000
+      ) {
+        refreshAttempts.set(w.id, Date.now());
+        void refreshWidget(w.id);
+      }
+    }
+  }
   return {
+    fieldSelections,
+    selectFields,
+    createDerived,
+    refreshDue,
     apiProposal,
     proposeApi,
     dataRequests,

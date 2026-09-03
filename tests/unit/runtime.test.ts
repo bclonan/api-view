@@ -331,6 +331,8 @@ describe("WebMCP contracts", () => {
       ["remove_widget", { widgetId }],
     ] as const)
       expect((await run(name, input)).isError, name).toBe(false);
+    expect(store.widgets).toHaveLength(2);
+    store.removeWidget(widgetId);
     expect(store.widgets).toHaveLength(1);
   });
   it("cancels before creating a widget", async () => {

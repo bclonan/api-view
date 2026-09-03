@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import ModalDialog from "../components/ModalDialog.vue";
 import { contracts } from "./contracts";
 import { createToolRunner, toolLog } from "./handlers";
-import { webmcpStatus, webmcpError } from "./register";
+import { webmcpStatus, webmcpError, nativeContracts } from "./register";
 import { useWorkspace } from "../stores/workspace";
 const emit = defineEmits<{ close: [] }>();
 const store = useWorkspace();
@@ -16,6 +16,17 @@ const current = computed(() =>
 );
 const runTool = createToolRunner(store);
 const examples: Record<string, unknown> = {
+  discover_data_sources: { query: "weather", publicCatalog: true },
+  inspect_source: { url: "https://api.nobelprize.org/2.1/nobelPrizes?limit=3" },
+  test_data_source: {
+    url: "https://api.nobelprize.org/2.1/nobelPrizes?limit=3",
+  },
+  list_workspace_sources: {},
+  list_blocks: {},
+  get_page_context: { limit: 10 },
+  use_all_page_data: { limit: 10 },
+  collapse_sidebar: { collapsed: true },
+  open_share_view: {},
   plan_goal: {
     prompt:
       "Build an earthquake research dashboard with weather near the strongest event.",
@@ -142,13 +153,13 @@ async function run() {
       ></span
       ><strong>{{
         webmcpStatus === "available"
-          ? `${contracts.length} tools registered with WebMCP`
+          ? `${nativeContracts.length} tools registered with WebMCP`
           : "Native WebMCP is unavailable in this browser"
       }}</strong>
       <p>
         {{
           webmcpStatus === "available"
-            ? "A connected browser agent can discover and call these tools."
+            ? `A connected browser agent can call the registered tools. All ${contracts.length} tools, including compatibility aliases, are available in this local runner.`
             : "Manual controls and the local tool runner work without native WebMCP."
         }}
       </p>

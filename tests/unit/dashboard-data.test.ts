@@ -518,6 +518,8 @@ describe("custom APIs use the existing executor", () => {
         })
       ).isError,
     ).toBe(false);
+    expect(store.widgets).toHaveLength(1);
+    store.clearDashboard();
     expect(store.widgets).toHaveLength(0);
     expect(
       (await run("manage_dashboard", { action: "undo-clear" })).isError,

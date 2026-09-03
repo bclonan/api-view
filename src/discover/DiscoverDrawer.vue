@@ -1,9 +1,53 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { Search, Plus, X } from "lucide-vue-next";
 import { apis, searchApis } from "../api/registry";
 import ApiIcon from "../components/ApiIcon.vue";
-defineProps<{ collapsed?: boolean }>();
+const props = defineProps<{ collapsed?: boolean }>();
+const drawer = ref<HTMLElement>();
+const mobile = ref(window.innerWidth <= 600);
+const media = window.matchMedia("(max-width: 600px)");
+const syncMobile = () => {
+  mobile.value = media.matches;
+};
+media.addEventListener("change", syncMobile);
+let previous: HTMLElement | undefined;
+watch(
+  () => props.collapsed,
+  async (collapsed) => {
+    if (!mobile.value) return;
+    if (!collapsed) {
+      previous =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : undefined;
+      await nextTick();
+      drawer.value?.querySelector<HTMLInputElement>("input")?.focus();
+    } else previous?.focus();
+  },
+);
+onBeforeUnmount(() => media.removeEventListener("change", syncMobile));
+function drawerKeys(event: KeyboardEvent) {
+  if (!mobile.value) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    emit("close");
+  }
+  if (event.key === "Tab") {
+    const controls = [
+      ...drawer.value!.querySelectorAll<HTMLElement>(
+        "button:not(:disabled),input,select,a[href]",
+      ),
+    ].filter((el) => el.offsetParent !== null);
+    if (event.shiftKey && document.activeElement === controls[0]) {
+      event.preventDefault();
+      controls.at(-1)?.focus();
+    } else if (!event.shiftKey && document.activeElement === controls.at(-1)) {
+      event.preventDefault();
+      controls[0]?.focus();
+    }
+  }
+}
 const emit = defineEmits<{
   select: [apiId: string, operationId: string];
   close: [];
@@ -20,7 +64,22 @@ const categories = computed(() =>
 );
 </script>
 <template>
-  <aside class="discover" v-if="!collapsed">
+  <button
+    v-if="mobile && !collapsed"
+    class="discovery-backdrop"
+    aria-label="Dismiss source drawer"
+    tabindex="-1"
+    @click="emit('close')"
+  />
+  <aside
+    ref="drawer"
+    class="discover"
+    v-if="!collapsed"
+    :role="mobile ? 'dialog' : undefined"
+    :aria-modal="mobile ? true : undefined"
+    aria-label="Discover sources"
+    @keydown="drawerKeys"
+  >
     <div class="discover-heading">
       <h2>Discover</h2>
       <button

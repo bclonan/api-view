@@ -1,11 +1,28 @@
 import { ref } from "vue";
 import { contracts } from "./contracts";
+import { workspaceContracts } from "./workspaceTools";
 import { createToolRunner } from "./handlers";
 import type { useWorkspace } from "../stores/workspace";
 export const webmcpStatus = ref<
   "checking" | "available" | "unavailable" | "error"
 >("checking");
 export const webmcpError = ref("");
+// Keep compatibility aliases in the local runner without duplicating native schemas.
+const nativeNames = new Set([
+  ...workspaceContracts.map((contract) => contract.name),
+  "get_workspace",
+  "list_components",
+  "search_api_catalog",
+  "inspect_api_capability",
+  "run_api",
+  "refresh_widget",
+  "manage_dashboard",
+  "plan_goal",
+  "execute_goal",
+]);
+export const nativeContracts = contracts.filter((contract) =>
+  nativeNames.has(contract.name),
+);
 export async function registerTools(store: ReturnType<typeof useWorkspace>) {
   const controller = new AbortController();
   const context = document.modelContext;
@@ -15,7 +32,7 @@ export async function registerTools(store: ReturnType<typeof useWorkspace>) {
   }
   const runTool = createToolRunner(store);
   try {
-    for (const contract of contracts) {
+    for (const contract of nativeContracts) {
       await context.registerTool(
         {
           name: contract.name,
